@@ -16,7 +16,9 @@
           <button class="btn-primary" @click="showLogModal = true">Log Trade</button>
         </div>
 
-        <TradeList class="mt-6" :trades="trades" />
+        <div v-if="loading" class="text-white/70 mt-6">Cargando trades...</div>
+        <div v-else-if="error" class="text-red-400 mt-6">{{ error }}</div>
+        <TradeList v-else class="mt-6" :trades="trades" />
       </section>
 
       <section class="panel p-6 md:p-8">
@@ -34,7 +36,7 @@
           </div>
           <div class="panel p-5">
             <div class="subtitle">Operaciones</div>
-            <div class="metric metric-mono mt-1">12</div>
+            <div class="metric metric-mono mt-1">{{ trades.length }}</div>
           </div>
           <div class="panel p-5 glow-amber">
             <div class="subtitle">Riesgo</div>
@@ -52,21 +54,51 @@
 </template>
 
 <script setup>
-// Minimal App with a single styled button
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Modal from './components/Modal.vue'
 import TradeForm from './components/TradeForm.vue'
 import TradeList from './components/TradeList.vue'
+import { getTrades, createTrade } from './api'
+import { useOptionsStore } from './stores/optionsStore'
 
 const showLogModal = ref(false)
-const trades = ref([
-  { id: 1, symbol: 'NQ', side: 'buy', date: '2025-10-24', rate: 0.50, risk: 1.0, result: 250.00, status: 'TP', notes: 'Breakout', emotions: ['Confianza'], confirmations: ['FVG'], tradingLink: 'https://example.com/1' },
-  { id: 2, symbol: 'ES', side: 'sell', date: '2025-10-24', rate: 0.25, risk: 0.8, result: -120.00, status: 'SL', notes: 'Reversión', emotions: ['Calma'], confirmations: ['CISD'], tradingLink: '' }
-])
+const trades = ref([])
+const loading = ref(false)
+const error = ref('')
+const optionsStore = useOptionsStore()
 
-function handleSubmit(payload) {
-  trades.value = [payload, ...trades.value]
-  showLogModal.value = false
+async function refreshTrades() {
+  try {
+    loading.value = true
+    error.value = ''
+    const data = await getTrades()
+    trades.value = Array.isArray(data) ? data : []
+  } catch (e) {
+    error.value = e?.message || String(e)
+  } finally {
+    loading.value = false
+  }
 }
+
+async function handleSubmit(payload) {
+  try {
+    loading.value = true
+    error.value = ''
+    await createTrade(payload)
+    await refreshTrades()
+    showLogModal.value = false
+  } catch (e) {
+    error.value = e?.message || String(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    optionsStore.loadAll(),
+    refreshTrades(),
+  ])
+})
 </script>
 

@@ -145,11 +145,7 @@ function onSubmit() {
   if (!form.symbol || !form.side || !form.date) return
   if (form.rate == null) return
 
-  const payload = {
-    id: Date.now(),
-    ...form
-  }
-  console.log('Trade saved:', payload)
+  const payload = { ...form }
   emit('submit', payload)
 }
 </script>

@@ -14,6 +14,7 @@ class EmotionService:
         collection_name = f"{FIREBASE_COLLECTION}_emotions"
         self.db: DatabaseService = database_service or FirebaseService(collection_name)
         self._load_sample_data()
+        print('pase')
 
     def _load_sample_data(self):
         """Cargar datos de ejemplo para testing"""

@@ -14,6 +14,10 @@ class FirebaseService(DatabaseService):
         self.collection_name = collection_name
         self._init_firebase()
         self.db = firestore.client(database_id=FIREBASE_DATABASE_ID)
+        try:
+            print(f"🔧 FirebaseService init -> database_id={FIREBASE_DATABASE_ID}, collection={self.collection_name}")
+        except Exception:
+            pass
 
     def _init_firebase(self):
         """Inicializar Firebase Admin SDK"""
@@ -79,21 +83,38 @@ class FirebaseService(DatabaseService):
                 print("🔄 Continuando en modo de desarrollo...")
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[Dict]:
-        """Obtener todos los trades ordenados por fecha descendente"""
+        """Obtener documentos de la colección actual con ordenamiento seguro"""
         try:
-            trades_ref = self.db.collection(self.collection_name)
-            query = trades_ref.order_by('date', direction=firestore.Query.DESCENDING)
-            docs = query.limit(limit).offset(skip).stream()
+            col_ref = self.db.collection(self.collection_name)
 
-            trades = []
-            for doc in docs:
-                trade_data = doc.to_dict()
-                trade_data['id'] = doc.id
-                trades.append(trade_data)
+            # Para colecciones de tags preferimos stream sin orden para evitar inconsistencias
+            if self.collection_name.endswith('_emotions') or self.collection_name.endswith('_confirmations'):
+                docs_iter = col_ref.stream()
+            else:
+                # Intentar ordenar por 'date' y fallback a 'name'
+                try:
+                    query = col_ref.order_by('date', direction=firestore.Query.DESCENDING)
+                    docs_iter = query.limit(limit).offset(skip).stream()
+                except Exception:
+                    try:
+                        query = col_ref.order_by('name', direction=firestore.Query.ASCENDING)
+                        docs_iter = query.limit(limit).offset(skip).stream()
+                    except Exception:
+                        docs_iter = col_ref.stream()
 
-            return trades
+            items: List[Dict] = []
+            for doc in docs_iter:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                items.append(data)
+            try:
+                ids_preview = [d.get('id') for d in items[:5]]
+                print(f"ℹ️ get_all: collection={self.collection_name}, count={len(items)}, ids={ids_preview}")
+            except Exception:
+                pass
+            return items
         except Exception as e:
-            print(f"❌ Error obteniendo trades: {e}")
+            print(f"❌ Error obteniendo documentos de {self.collection_name}: {e}")
             return []
 
     async def get_by_id(self, record_id: str) -> Optional[Dict]:
@@ -121,6 +142,13 @@ class FirebaseService(DatabaseService):
 
             # Retornar con ID
             trade_data['id'] = doc_ref.id
+            try:
+                print(f"✅ create: collection={self.collection_name}, id={trade_data['id']}, keys={list(trade_data.keys())}")
+                # Verificación de lectura inmediata
+                verify = doc_ref.get()
+                print(f"🔎 verify-after-create: exists={verify.exists}, collection={self.collection_name}")
+            except Exception:
+                pass
             return trade_data
         except Exception as e:
             print(f"❌ Error creando trade: {e}")

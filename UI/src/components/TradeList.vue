@@ -45,7 +45,7 @@
           <td class="py-3 pr-4">{{ t.side === 'buy' ? 'Compra' : 'Venta' }}</td>
           <td class="py-3 pr-4">{{ t.date }}</td>
           <td class="py-3 pr-4 metric-mono">{{ formatRate(t.rate) }}</td>
-          <td class="py-3 pr-4 metric-mono">{{ t.risk ?? '-' }}</td>
+          <td class="py-3 pr-4 metric-mono">{{ formatRisk(t.risk) }}</td>
           <td class="py-3 pr-4 metric-mono">
             <span :style="moneyColor(t.status)">{{ formatMoney(t.result) }}</span>
           </td>
@@ -60,7 +60,7 @@
             </div>
           </td>
           <td class="py-3 pr-4">
-            <a v-if="t.tradingLink" :href="t.tradingLink" target="_blank" rel="noopener" class="inline-flex items-center justify-center link" title="Abrir link">
+            <a v-if="tradeLink(t)" :href="tradeLink(t)" target="_blank" rel="noopener" class="inline-flex items-center justify-center link" title="Abrir link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M14 3h7v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -107,6 +107,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Modal from './Modal.vue'
 import TagManager from './TagManager.vue'
+import { useOptionsStore } from '../stores/optionsStore'
 
 const props = defineProps({
   trades: { type: Array, default: () => [] }
@@ -114,6 +115,7 @@ const props = defineProps({
 
 const openNoteId = ref(null)
 const showManagerFor = ref(null) // 'emotions' | 'confirmations' | null
+const optionsStore = useOptionsStore()
 
 function toggleNote(id) {
   openNoteId.value = openNoteId.value === id ? null : id
@@ -141,7 +143,12 @@ onBeforeUnmount(() => {
 
 function formatRate(v) {
   if (v == null || v === '') return '-'
-  return `${Number(v).toFixed(2)}%`
+  const n = Number(v)
+  return `${n.toFixed(1)}%`
+}
+function formatRisk(v) {
+  if (v == null || v === '') return '-'
+  return Number(v).toFixed(2)
 }
 function formatMoney(v) {
   if (v == null || v === '') return '-'
@@ -160,7 +167,14 @@ function statusClass(status) {
   return 'status-be'
 }
 
-function openManager(type) {
+function tradeLink(t) {
+  const raw = (t && (t.tradingLink || t.trading_link)) || ''
+  if (!raw) return ''
+  return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+}
+
+async function openManager(type) {
+  await optionsStore.loadAll()
   showManagerFor.value = type
 }
 </script>
