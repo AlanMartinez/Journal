@@ -1,10 +1,25 @@
+# Entornos virtuales de Python (CRÍTICO)
+.venv/
+venv/
+ENV/
+env/
+.ENV/
+.env/
+.env.bak
+.env.local
+.env.*.local
+
+# Scripts de activación de entornos virtuales
+*/.venv/
+*/venv/
+*/ENV/
+*/env/
+
 # Configuración y credenciales privadas
 firebase-credentials.json
-.env
-.env.local
-.env.production
-.env.development
-*.env
+*.json.bak
+config.local.py
+local_settings.py
 
 # Archivos de Python
 __pycache__/
@@ -42,7 +57,7 @@ out/
 .vercel
 .netlify
 
-# Archivos de IDE y editores
+# Archivos de IDE y editores (CRÍTICO)
 .vscode/
 .idea/
 *.swp
@@ -52,6 +67,14 @@ out/
 Thumbs.db
 .vscode/settings.json
 .vscode/launch.json
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Configuración específica del proyecto
+config.local.*
+local.*
 
 # Logs y archivos temporales
 *.log
@@ -148,12 +171,62 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Archivos de configuración de herramientas
-.eslintcache
-.stylelintcache
-.prettierrc
-.prettierignore
+# Archivos de package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Archivos de Git (por si acaso)
-.git/
-.gitignore.local
+# Archivos de documentación generados
+docs/_build/
+*.pdf
+*.docx
+CHANGELOG.md
+VERSION
+
+# Archivos de análisis y testing
+coverage/
+.nyc_output/
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Archivos de backup y versiones
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.tmp
+*.temp
+*~
+
+# Archivos de versión y revisiones
+*.rev
+*.revision
+*revision*
+
+# Archivos de configuración de servicios
+*.pem
+*.key
+*.crt
+ssl/
+certs/
+
+# Archivos de base de datos locales
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Archivos de deployment y CI/CD
+.deploy/
+deployment/
+.github/workflows/
+.gitlab-ci.yml
+
+# Archivos de métricas y análisis
+.scannerwork/
+sonar-report/
+lighthouse-report/
+*.metrics

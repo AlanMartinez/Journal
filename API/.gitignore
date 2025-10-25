@@ -1,0 +1,70 @@
+# Entornos virtuales de Python (CRÍTICO)
+.venv/
+venv/
+ENV/
+env/
+.ENV/
+.env/
+.env.bak
+.env.local
+.env.*.local
+
+# Configuración específica de API Python/FastAPI
+
+# Credenciales Firebase (CRÍTICO - no subir)
+firebase-credentials.json
+*.json.bak
+
+# Variables de entorno
+.env*
+
+# Archivos Python compilados
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Distribución y packaging
+build/
+dist/
+*.egg-info/
+
+# Testing y coverage
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos temporales
+*.tmp
+*.temp
+.cache/
+
+# Configuración local
+config.local.py
+local_settings.py
+
+# Archivos de backup
+*.bak
+*.backup
+*.old
+
+# Archivos de servicios
+*.pem
+*.key
+*.crt
