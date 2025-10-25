@@ -102,20 +102,24 @@ async def get_trades_summary():
         return {
             "total_trades": 0,
             "total_pnl": 0,
+            "avg_pnl": 0,
             "winning_trades": 0,
             "losing_trades": 0,
             "win_rate": 0
         }
 
     # Calcular estadísticas básicas
-    total_pnl = 0
+    total_pnl = 0.0
     winning_trades = 0
     losing_trades = 0
 
     for trade in trades_data:
         # Sumar P&L si existe
         if trade.get('result') is not None:
-            total_pnl += trade['result']
+            try:
+                total_pnl += float(trade['result'])
+            except Exception:
+                pass
 
         # Contar wins/losses
         if trade.get('status') == 'TP':
@@ -124,10 +128,12 @@ async def get_trades_summary():
             losing_trades += 1
 
     win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+    avg_pnl = (total_pnl / total_trades) if total_trades > 0 else 0
 
     return {
         "total_trades": total_trades,
         "total_pnl": round(total_pnl, 2),
+        "avg_pnl": round(avg_pnl, 2),
         "winning_trades": winning_trades,
         "losing_trades": losing_trades,
         "win_rate": round(win_rate, 2)

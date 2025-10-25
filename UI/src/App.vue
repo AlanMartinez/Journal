@@ -21,7 +21,7 @@
         <TradeList v-else class="mt-6" :trades="trades" />
       </section>
 
-      <section class="panel p-6 md:p-8">
+      <section class="panel p-6 md:p-8 mt-10">
         <div class="flex items-start justify-between gap-6">
           <div>
             <h2 class="heading-lg title-glow">Resumen</h2>
@@ -29,20 +29,7 @@
           </div>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="panel p-5 glow-cyan">
-            <div class="subtitle">PNL Hoy</div>
-            <div class="metric metric-mono mt-1">+2.45%</div>
-          </div>
-          <div class="panel p-5">
-            <div class="subtitle">Operaciones</div>
-            <div class="metric metric-mono mt-1">{{ trades.length }}</div>
-          </div>
-          <div class="panel p-5 glow-amber">
-            <div class="subtitle">Riesgo</div>
-            <div class="metric metric-mono mt-1">0.62</div>
-          </div>
-        </div>
+        <DashboardStats class="mt-6" :trades="trades" />
       </section>
 
       <Modal v-model="showLogModal" title="Log Trade">
@@ -58,11 +45,13 @@ import { ref, onMounted } from 'vue'
 import Modal from './components/Modal.vue'
 import TradeForm from './components/TradeForm.vue'
 import TradeList from './components/TradeList.vue'
-import { getTrades, createTrade } from './api'
+import DashboardStats from './components/DashboardStats.vue'
+import { getTrades, createTrade, getTradeStatsSummary } from './api'
 import { useOptionsStore } from './stores/optionsStore'
 
 const showLogModal = ref(false)
 const trades = ref([])
+const stats = ref({ total_pnl: 0, avg_pnl: 0, total_trades: 0, win_rate: 0 })
 const loading = ref(false)
 const error = ref('')
 const optionsStore = useOptionsStore()
@@ -80,12 +69,28 @@ async function refreshTrades() {
   }
 }
 
+async function refreshStats() {
+  try {
+    const data = await getTradeStatsSummary()
+    stats.value = data || { total_pnl: 0, avg_pnl: 0, total_trades: 0, win_rate: 0 }
+  } catch (_) {
+    // ignore error
+  }
+}
+
+function formatMoney(n) {
+  const v = Number(n) || 0
+  const sign = v >= 0 ? '' : '-'
+  const abs = Math.abs(v).toFixed(2)
+  return `${sign}$${abs}`
+}
+
 async function handleSubmit(payload) {
   try {
     loading.value = true
     error.value = ''
     await createTrade(payload)
-    await refreshTrades()
+    await Promise.all([refreshTrades(), refreshStats()])
     showLogModal.value = false
   } catch (e) {
     error.value = e?.message || String(e)
@@ -98,6 +103,7 @@ onMounted(async () => {
   await Promise.all([
     optionsStore.loadAll(),
     refreshTrades(),
+    refreshStats(),
   ])
 })
 </script>

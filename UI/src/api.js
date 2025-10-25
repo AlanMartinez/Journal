@@ -52,3 +52,8 @@ export async function createConfirmation(data) {
 export async function deleteConfirmation(id) {
   return http(`/confirmations/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+
+// Stats
+export async function getTradeStatsSummary() {
+  return http('/trades/stats/summary')
+}
