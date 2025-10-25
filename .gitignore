@@ -1,0 +1,159 @@
+# Configuración y credenciales privadas
+firebase-credentials.json
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Archivos de Node.js y frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn
+dist/
+build/
+.next/
+out/
+.vercel
+.netlify
+
+# Archivos de IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.vscode/launch.json
+
+# Logs y archivos temporales
+*.log
+logs/
+*.tmp
+*.temp
+.cache/
+*.pid
+*.seed
+*.pid.lock
+
+# Archivos de testing y coverage
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Archivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# Archivos de sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos específicos de Firebase
+firebase-debug.log
+firestore-debug.log
+
+# Archivos de base de datos locales (SQLite, etc.)
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de configuración de servidor
+*.pem
+*.key
+*.crt
+ssl/
+
+# Archivos de documentación generados
+docs/_build/
+*.pdf
+*.docx
+
+# Archivos de deployment
+deployment/
+.deploy/
+
+# Archivos de análisis y métricas
+.scannerwork/
+sonar-report/
+lighthouse-report/
+
+# Archivos específicos de Windows
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Archivos específicos de macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Archivos de configuración de herramientas
+.eslintcache
+.stylelintcache
+.prettierrc
+.prettierignore
+
+# Archivos de Git (por si acaso)
+.git/
+.gitignore.local
