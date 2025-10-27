@@ -48,11 +48,19 @@ class FirebaseService(DatabaseService):
             client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
             client_id = os.getenv("FIREBASE_CLIENT_ID")
 
-            if all([FIREBASE_CONFIG.get("projectId"), private_key_id, private_key, client_email]):
+            project_id = None
+            try:
+                project_id = (FIREBASE_CONFIG or {}).get("projectId")
+            except Exception:
+                project_id = None
+            if not project_id:
+                project_id = os.getenv("FIREBASE_PROJECT_ID")
+
+            if all([project_id, private_key_id, private_key, client_email]):
                 # Crear credenciales desde variables de entorno
                 cred_dict = {
                     "type": "service_account",
-                    "project_id": FIREBASE_CONFIG.get("projectId"),
+                    "project_id": project_id,
                     "private_key_id": private_key_id,
                     "private_key": private_key.replace('\\n', '\n'),
                     "client_email": client_email,

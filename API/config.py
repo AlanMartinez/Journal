@@ -9,9 +9,10 @@ API_VERSION = "1.0.0"
 
 # Configuración CORS
 ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:3000",  # React dev server
-    "http://localhost:8080",  # Vue CLI dev server
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "https://journal-23783252-2d978.web.app",
 ]
 
 # Configuración del servidor
