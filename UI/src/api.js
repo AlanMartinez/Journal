@@ -31,6 +31,11 @@ export async function createTrade(trade) {
   return http('/trades', { method: 'POST', body })
 }
 
+export async function updateTrade(id, trade) {
+  const body = JSON.stringify(toSnakeCasePayload(trade))
+  return http(`/trades/${encodeURIComponent(id)}`, { method: 'PUT', body })
+}
+
 // Emotions
 export async function getEmotions() {
   return http('/emotions')

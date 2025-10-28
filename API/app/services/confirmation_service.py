@@ -1,9 +1,11 @@
+import os
 import asyncio
 from typing import List, Optional, Dict
 from datetime import datetime
 
-from app.services.database_service import DatabaseService
-from app.services.firebase_service import FirebaseService
+from app.services.database.database_service import DatabaseService
+from app.services.database.firebase_service import FirebaseService
+from app.services.in_memory.in_memory_service import InMemoryService
 from config import FIREBASE_COLLECTION
 
 class ConfirmationService:
@@ -12,7 +14,14 @@ class ConfirmationService:
     def __init__(self, database_service: Optional[DatabaseService] = None):
         """Inicializar con inyección de dependencias"""
         collection_name = f"{FIREBASE_COLLECTION}_confirmations"
-        self.db: DatabaseService = database_service or FirebaseService(collection_name)
+        if database_service is not None:
+            self.db = database_service
+        else:
+            # Usar InMemoryService en desarrollo, Firebase en producción
+            if os.getenv('ENV') == 'development':
+                self.db = InMemoryService(collection_name)
+            else:
+                self.db = FirebaseService(collection_name)
         self._load_sample_data()
 
     def _load_sample_data(self):

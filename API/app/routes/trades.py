@@ -4,6 +4,7 @@ from datetime import date
 
 from app.models.trade import Trade, TradeCreate, TradeUpdate
 from app.services.trade_service import trade_service
+from app.services.trade_stats_service import trade_stats_service
 
 router = APIRouter(
     prefix="/trades",
@@ -95,46 +96,4 @@ async def delete_trade(trade_id: str):
 @router.get("/stats/summary")
 async def get_trades_summary():
     """Obtener estadísticas básicas de trades"""
-    total_trades = trade_service.get_count()
-    trades_data = trade_service.get_all()
-
-    if not trades_data:
-        return {
-            "total_trades": 0,
-            "total_pnl": 0,
-            "avg_pnl": 0,
-            "winning_trades": 0,
-            "losing_trades": 0,
-            "win_rate": 0
-        }
-
-    # Calcular estadísticas básicas
-    total_pnl = 0.0
-    winning_trades = 0
-    losing_trades = 0
-
-    for trade in trades_data:
-        # Sumar P&L si existe
-        if trade.get('result') is not None:
-            try:
-                total_pnl += float(trade['result'])
-            except Exception:
-                pass
-
-        # Contar wins/losses
-        if trade.get('status') == 'TP':
-            winning_trades += 1
-        elif trade.get('status') == 'SL':
-            losing_trades += 1
-
-    win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
-    avg_pnl = (total_pnl / total_trades) if total_trades > 0 else 0
-
-    return {
-        "total_trades": total_trades,
-        "total_pnl": round(total_pnl, 2),
-        "avg_pnl": round(avg_pnl, 2),
-        "winning_trades": winning_trades,
-        "losing_trades": losing_trades,
-        "win_rate": round(win_rate, 2)
-    }
+    return trade_stats_service.get_summary()
