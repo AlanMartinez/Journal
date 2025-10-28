@@ -1,31 +1,52 @@
 import asyncio
-from typing import List, Optional, Dict
+import os
+from typing import List, Optional, Dict, Any
 from datetime import datetime, date
 
-from app.services.database_service import DatabaseService
-from app.services.firebase_service import FirebaseService
-from config import FIREBASE_COLLECTION
+from .database.base_data_service import BaseDataService
+from .in_memory.in_memory_service import InMemoryService
+
+# Importación condicional de Firebase
+if os.getenv('ENV') != 'development':
+    from .firebase_service import FirebaseService
+    from config import FIREBASE_COLLECTION
 
 class TradeService:
     """Servicio para manejar trades siguiendo principios SOLID"""
 
-    def __init__(self, database_service: Optional[DatabaseService] = None):
+    def __init__(self, data_service: Optional[BaseDataService] = None):
         """Inicializar con inyección de dependencias"""
-        self.db: DatabaseService = database_service or FirebaseService(FIREBASE_COLLECTION)
+        if data_service is not None:
+            self.db = data_service
+        else:
+            # Si no se proporciona un servicio, elegir según el entorno
+            if os.getenv('ENV') == 'development':
+                self.db = InMemoryService("trades")
+            else:
+                self.db = FirebaseService(FIREBASE_COLLECTION)
+
+    async def get_all_async(self, skip: int = 0, limit: int = 100) -> List[Dict]:
+        """Versión asíncrona para obtener todos los trades"""
+        try:
+            return await self.db.get_all(skip, limit)
+        except Exception as e:
+            print(f"Error en get_all_async: {e}")
+            return []
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Dict]:
         """Obtener todos los trades ordenados por fecha descendente"""
         try:
-            # Ejecutar la coroutine de manera síncrona
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                # Si ya hay un loop corriendo, crear una nueva tarea
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async, self.db.get_all(skip, limit))
+                    future = executor.submit(
+                        asyncio.run, 
+                        self.get_all_async(skip, limit)
+                    )
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.get_all(skip, limit))
+                return loop.run_until_complete(self.get_all_async(skip, limit))
         except Exception as e:
             print(f"Error en get_all: {e}")
             return []
@@ -146,5 +167,16 @@ class TradeService:
         finally:
             loop.close()
 
-# Instancia global del servicio de trades con Firebase
-trade_service = TradeService()
+# Factory function para crear el servicio apropiado según el entorno
+def create_trade_service(use_in_memory: bool = None) -> 'TradeService':
+    """Crea una instancia de TradeService con el backend configurado"""
+    if use_in_memory is None:
+        use_in_memory = os.getenv('ENV') == 'development'
+    
+    if use_in_memory:
+        return TradeService(InMemoryService("trades"))
+    else:
+        return TradeService()
+
+# Instancia global del servicio de trades
+trade_service = create_trade_service()

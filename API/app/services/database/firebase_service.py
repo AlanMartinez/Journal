@@ -3,7 +3,7 @@ from firebase_admin import credentials, firestore
 from typing import Dict, List, Optional
 import os
 
-from app.services.database_service import DatabaseService
+from app.services.database.database_service import DatabaseService
 from config import FIREBASE_DATABASE_ID
 
 class FirebaseService(DatabaseService):

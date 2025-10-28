@@ -1,6 +1,11 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
 
 # Importar configuración
 from config import (
@@ -8,7 +13,17 @@ from config import (
     ALLOWED_ORIGINS, HOST, PORT
 )
 
-# Importar rutas
+# Configurar el entorno
+ENV = os.getenv('ENV', 'development')
+print(f"Iniciando aplicación en modo: {ENV}")
+
+# Inicializar servicios
+from app.services.trade_service import create_trade_service
+
+# Crear instancia del servicio de trades
+trade_service = create_trade_service(use_in_memory=(ENV == 'development'))
+
+# Importar rutas después de inicializar los servicios
 from app.routes import trades, emotions, confirmations
 
 app = FastAPI(

@@ -37,7 +37,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="t in trades" :key="t.id" class="border-t border-white/10">
+        <tr v-for="t in trades" :key="t.id" 
+    class="border-t border-white/10 hover:bg-white/5 transition-colors duration-150 cursor-pointer"
+    @dblclick="editTrade(t)">
           <td class="py-3 pr-4">{{ t.symbol }}</td>
           <td class="py-3 pr-4">
             <span class="badge" :class="statusClass(t.status)">{{ t.status || 'BE' }}</span>
@@ -115,7 +117,12 @@ const props = defineProps({
 
 const openNoteId = ref(null)
 const showManagerFor = ref(null) // 'emotions' | 'confirmations' | null
+const emit = defineEmits(['edit'])
 const optionsStore = useOptionsStore()
+
+function editTrade(trade) {
+  emit('edit', trade)
+}
 
 function toggleNote(id) {
   openNoteId.value = openNoteId.value === id ? null : id

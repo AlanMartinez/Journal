@@ -18,7 +18,12 @@
 
         <div v-if="loading" class="text-white/70 mt-6">Cargando trades...</div>
         <div v-else-if="error" class="text-red-400 mt-6">{{ error }}</div>
-        <TradeList v-else class="mt-6" :trades="trades" />
+        <TradeList 
+          v-else 
+          class="mt-6" 
+          :trades="trades" 
+          @edit="handleEditTrade"
+        />
       </section>
 
       <section class="panel p-6 md:p-8 mt-10">
@@ -32,8 +37,12 @@
         <DashboardStats class="mt-6" :trades="trades" />
       </section>
 
-      <Modal v-model="showLogModal" title="Log Trade">
-        <TradeForm @cancel="showLogModal = false" @submit="handleSubmit" />
+      <Modal v-model="showLogModal" :title="editingTrade ? 'Editar Trade' : 'Nuevo Trade'">
+        <TradeForm 
+          :initial-data="editingTrade"
+          @cancel="cancelEdit"
+          @submit="handleSubmit" 
+        />
       </Modal>
     </main>
   </div>
@@ -46,10 +55,11 @@ import Modal from './components/Modal.vue'
 import TradeForm from './components/TradeForm.vue'
 import TradeList from './components/TradeList.vue'
 import DashboardStats from './components/DashboardStats.vue'
-import { getTrades, createTrade, getTradeStatsSummary } from './api'
+import { getTrades, createTrade, updateTrade, getTradeStatsSummary } from './api'
 import { useOptionsStore } from './stores/optionsStore'
 
 const showLogModal = ref(false)
+const editingTrade = ref(null)
 const trades = ref([])
 const stats = ref({ total_pnl: 0, avg_pnl: 0, total_trades: 0, win_rate: 0 })
 const loading = ref(false)
@@ -85,14 +95,48 @@ function formatMoney(n) {
   return `${sign}$${abs}`
 }
 
+async function handleEditTrade(trade) {
+  editingTrade.value = { ...trade }
+  showLogModal.value = true
+}
+
+function cancelEdit() {
+  editingTrade.value = null
+  showLogModal.value = false
+}
+
 async function handleSubmit(payload) {
   try {
     loading.value = true
     error.value = ''
-    await createTrade(payload)
+    
+    if (editingTrade.value?.id) {
+      // Create a clean payload for update, excluding the date if it hasn't changed
+      const updatePayload = { ...payload }
+      
+      // If the date hasn't changed, remove it from the payload
+      if (updatePayload.date === editingTrade.value.date) {
+        delete updatePayload.date
+      }
+      
+      console.log('Updating trade with payload:', { id: editingTrade.value.id, ...updatePayload })
+      try {
+        const result = await updateTrade(editingTrade.value.id, updatePayload)
+        console.log('Update successful:', result)
+      } catch (updateError) {
+        console.error('Error updating trade:', updateError)
+        throw updateError // Re-lanzar para que sea manejado por el catch externo
+      }
+    } else {
+      console.log('Creating new trade:', payload)
+      await createTrade(payload)
+    }
+    
+    // Refrescar datos
     await Promise.all([refreshTrades(), refreshStats()])
-    showLogModal.value = false
+    cancelEdit()
   } catch (e) {
+    console.error('Error in handleSubmit:', e)
     error.value = e?.message || String(e)
   } finally {
     loading.value = false

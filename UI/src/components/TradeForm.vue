@@ -108,6 +108,13 @@
 import { reactive, computed } from 'vue'
 import { useOptionsStore } from '../stores/optionsStore'
 
+const props = defineProps({
+  initialData: {
+    type: Object,
+    default: null
+  }
+})
+
 const emit = defineEmits(['submit', 'cancel'])
 
 const store = useOptionsStore()
@@ -116,17 +123,17 @@ const confirmationsOptions = computed(() => store.state.confirmations)
 
 const symbolOptions = ['NQ', 'ES', 'YM', 'CL', 'GC']
 const form = reactive({
-  symbol: 'NQ',
-  side: 'buy',
-  date: new Date().toISOString().slice(0, 10),
-  rate: 0.5,
-  risk: null,
-  result: null,
-  notes: '',
-  emotions: [],
-  confirmations: [],
-  tradingLink: null,
-  status: 'BE'
+  symbol: props.initialData?.symbol || 'NQ',
+  side: props.initialData?.side || 'buy',
+  date: props.initialData?.date || new Date().toISOString().slice(0, 10),
+  rate: props.initialData?.rate || 0.5,
+  risk: props.initialData?.risk || null,
+  result: props.initialData?.result || null,
+  notes: props.initialData?.notes || '',
+  emotions: props.initialData?.emotions || [],
+  confirmations: props.initialData?.confirmations || [],
+  tradingLink: props.initialData?.tradingLink || null,
+  status: props.initialData?.status || 'BE'
 })
 
 function toggleEmotion(tag) {
@@ -145,7 +152,21 @@ function onSubmit() {
   if (!form.symbol || !form.side || !form.date) return
   if (form.rate == null) return
 
-  const payload = { ...form }
+  const payload = {
+    symbol: form.symbol,
+    side: form.side,
+    date: form.date,
+    rate: form.rate,
+    risk: form.risk,
+    result: form.result,
+    notes: form.notes,
+    emotions: form.emotions,
+    confirmations: form.confirmations,
+    tradingLink: form.tradingLink,
+    status: form.status,
+    ...(props.initialData?.id && { id: props.initialData.id }) // Include ID if editing
+  }
+  
   emit('submit', payload)
 }
 </script>
