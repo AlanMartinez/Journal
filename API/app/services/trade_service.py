@@ -8,7 +8,7 @@ from .in_memory.in_memory_service import InMemoryService
 
 # Importación condicional de Firebase
 if os.getenv('ENV') != 'development':
-    from .firebase_service import FirebaseService
+    from .database.firebase_service import FirebaseService
     from config import FIREBASE_COLLECTION
 
 class TradeService:

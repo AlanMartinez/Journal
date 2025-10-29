@@ -61,7 +61,7 @@ def test_firebase_connection():
     print("\n🌐 Probando conexión con Firebase...")
 
     try:
-        from app.services.firebase_service import FirebaseService
+        from app.services.database.firebase_service import FirebaseService
         service = FirebaseService("test")
 
         # Intentar una operación simple

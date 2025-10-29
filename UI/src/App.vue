@@ -13,7 +13,7 @@
       <section class="panel p-6 md:p-8 mt-6">
         <div class="flex items-center justify-between">
           <h2 class="heading-lg title-glow">Trades</h2>
-          <button class="btn-primary" @click="showLogModal = true">Log Trade</button>
+          <button class="btn-primary" @click="handleNewTrade">Log Trade</button>
         </div>
 
         <div v-if="loading" class="text-white/70 mt-6">Cargando trades...</div>
@@ -100,44 +100,58 @@ async function handleEditTrade(trade) {
   showLogModal.value = true
 }
 
+function handleNewTrade() {
+  editingTrade.value = null
+  showLogModal.value = true
+}
+
 function cancelEdit() {
   editingTrade.value = null
   showLogModal.value = false
 }
 
 async function handleSubmit(payload) {
+  loading.value = true
+  error.value = ''
+  
+  // Guardar el ID del trade antes de limpiar
+  const tradeId = editingTrade.value?.id
+  const wasEditing = !!tradeId
+  
+  // Cerrar el modal inmediatamente
+  cancelEdit()
+  
   try {
-    loading.value = true
-    error.value = ''
-    
-    if (editingTrade.value?.id) {
+    if (wasEditing && tradeId) {
       // Create a clean payload for update, excluding the date if it hasn't changed
       const updatePayload = { ...payload }
       
       // If the date hasn't changed, remove it from the payload
-      if (updatePayload.date === editingTrade.value.date) {
+      if (updatePayload.date === payload.date) {
         delete updatePayload.date
       }
       
-      console.log('Updating trade with payload:', { id: editingTrade.value.id, ...updatePayload })
-      try {
-        const result = await updateTrade(editingTrade.value.id, updatePayload)
-        console.log('Update successful:', result)
-      } catch (updateError) {
-        console.error('Error updating trade:', updateError)
-        throw updateError // Re-lanzar para que sea manejado por el catch externo
-      }
+      console.log('Updating trade with payload:', { id: tradeId, ...updatePayload })
+      await updateTrade(tradeId, updatePayload)
+      console.log('Update successful')
     } else {
       console.log('Creating new trade:', payload)
       await createTrade(payload)
     }
     
-    // Refrescar datos
-    await Promise.all([refreshTrades(), refreshStats()])
-    cancelEdit()
+    // Actualizar la lista de trades en segundo plano
+    refreshTrades().catch(e => {
+      console.error('Error refreshing trades:', e)
+      error.value = 'Error actualizando la lista de trades: ' + (e?.message || String(e))
+    })
+    
+    // Actualizar estadísticas en segundo plano
+    refreshStats().catch(e => console.error('Error refreshing stats:', e))
+    
   } catch (e) {
     console.error('Error in handleSubmit:', e)
-    error.value = e?.message || String(e)
+    // Mostrar error al usuario si algo falla
+    error.value = 'Error ' + (wasEditing ? 'actualizando' : 'creando') + ' el trade: ' + (e?.message || String(e))
   } finally {
     loading.value = false
   }

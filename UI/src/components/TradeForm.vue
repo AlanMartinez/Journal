@@ -21,10 +21,17 @@
       </div>
       <div>
         <label class="subtitle block mb-1">Fecha</label>
-        <input v-model="form.date" type="date" class="input w-full" required />
+        <input 
+          v-model="form.date" 
+          type="date" 
+          class="input w-full" 
+          :readonly="!!initialData" 
+          :class="{ 'bg-gray-700/50 cursor-not-allowed': initialData }"
+          required 
+        />
       </div>
       <div>
-        <label class="subtitle block mb-1">rate</label>
+        <label class="subtitle block mb-1">Rate</label>
         <div class="relative">
           <input v-model.number="form.rate" type="number" step="0.01" min="0" class="input w-full pr-12" placeholder="0.5" required />
           <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/70">%</span>
@@ -35,8 +42,8 @@
         <input v-model.number="form.risk" type="number" step="0.01" class="input w-full" placeholder="1.0" />
       </div>
       <div>
-        <label class="subtitle block mb-1">dinero+-</label>
-        <input v-model.number="form.result" type="number" step="0.01" class="input w-full" placeholder="$" />
+        <label class="subtitle block mb-1">Dinero+-</label>
+        <input v-model.number="form.result" type="number" step="0.01" class="input w-full" placeholder="$"/>
       </div>
       <div class="sm:col-span-2">
         <label class="subtitle block mb-1">Emociones asociadas</label>
@@ -97,15 +104,20 @@
       </div>
     </div>
 
-    <div class="flex items-center justify-end gap-3 pt-2">
-      <button type="button" class="btn-secondary" @click="$emit('cancel')">Cancelar</button>
-      <button type="submit" class="btn-primary">Guardar Trade</button>
+    <div class="flex flex-col items-end gap-2 pt-2">
+      <div v-if="errorMessage" class="w-full text-red-500 text-sm p-2 bg-red-500/10 rounded-md mb-2">
+        {{ errorMessage }}
+      </div>
+      <div class="flex items-center justify-end gap-3 w-full">
+        <button type="button" class="btn-secondary" @click="$emit('cancel')">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Trade</button>
+      </div>
     </div>
   </form>
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import { useOptionsStore } from '../stores/optionsStore'
 
 const props = defineProps({
@@ -122,6 +134,8 @@ const emotionOptions = computed(() => store.state.emotions)
 const confirmationsOptions = computed(() => store.state.confirmations)
 
 const symbolOptions = ['NQ', 'ES', 'YM', 'CL', 'GC']
+const errorMessage = ref('')
+
 const form = reactive({
   symbol: props.initialData?.symbol || 'NQ',
   side: props.initialData?.side || 'buy',
@@ -151,6 +165,20 @@ function toggleConfirmation(tag) {
 function onSubmit() {
   if (!form.symbol || !form.side || !form.date) return
   if (form.rate == null) return
+  
+  // Reset error message
+  errorMessage.value = ''
+  
+  // Validate result based on status
+  if (form.status === 'SL' && form.result !== null && form.result >= 0) {
+    errorMessage.value = 'Para un Stop Loss (SL) el resultado debe ser negativo'
+    return
+  }
+  
+  if (form.status === 'TP' && form.result !== null && form.result <= 0) {
+    errorMessage.value = 'Para un Take Profit (TP) el resultado debe ser positivo'
+    return
+  }
 
   const payload = {
     symbol: form.symbol,
