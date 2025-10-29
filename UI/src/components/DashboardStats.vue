@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-6 flex flex-wrap justify-center gap-6">
+  <div class="mt-2 flex flex-wrap justify-center gap-6">
    
     <div class="panel p-5 glow-cyan w-[260px] md:w-[300px]">
       <div class="subtitle">Win Rate</div>

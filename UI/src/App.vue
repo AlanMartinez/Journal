@@ -10,6 +10,19 @@
     </nav>
 
     <main class="mx-auto max-w-6xl px-6 pt-28 pb-12">
+
+       <section class="panel p-6 md:p-8">
+        <div class="flex items-start justify-between gap-6">
+          <div>
+            <h2 class="heading-lg title-glow">Resumen</h2>
+            <p class="subtitle mt-1">Rendimiento y métricas clave</p>
+          </div>
+        </div>
+
+        <DashboardStats class="mt-6" :trades="trades" />
+      </section>
+
+
       <section class="panel p-6 md:p-8 mt-6">
         <div class="flex items-center justify-between">
           <h2 class="heading-lg title-glow">Trades</h2>
@@ -25,18 +38,7 @@
           @edit="handleEditTrade"
         />
       </section>
-
-      <section class="panel p-6 md:p-8 mt-10">
-        <div class="flex items-start justify-between gap-6">
-          <div>
-            <h2 class="heading-lg title-glow">Resumen</h2>
-            <p class="subtitle mt-1">Rendimiento y métricas clave</p>
-          </div>
-        </div>
-
-        <DashboardStats class="mt-6" :trades="trades" />
-      </section>
-
+      
       <Modal v-model="showLogModal" :title="editingTrade ? 'Editar Trade' : 'Nuevo Trade'">
         <TradeForm 
           :initial-data="editingTrade"

@@ -5,25 +5,23 @@
 
 @layer base {
   :root {
-    /* Dark Modern Neon - Navy base */
-    /* Softer dark base for pastel theme */
+    /* Dark Modern Pastel - Navy base */
     --bg-1: 12 16 26;     /* #0C101A */
     --bg-2: 18 24 36;     /* #121824 */
     --panel: 22 30 46;    /* #161E2E */
     --panel-2: 28 40 60;  /* #1C283C */
-    --border: 255 255 255; /* use with low alpha */
-    --text: 232 238 244;   /* #E8EEF4 */
-    --muted: 150 161 178;  /* #96A1B2 */
+    --border: 255 255 255;
+    --text: 232 238 244;  /* #E8EEF4 */
+    --muted: 150 161 178; /* #96A1B2 */
 
-    /* Pastel Accents */
-    --accent-cyan: 190 160 255;  /* pastel purple */
-    --accent-amber: 255 220 160; /* pastel amber */
-    --accent-pink: 255 175 215;  /* pastel pink */
+    /* Pastel Accents (principal violeta) */
+    --accent-cyan: 212 173 252;  /* #D4ADFC */
+    --accent-amber: 255 220 190; /* pastel amber suave */
+    --accent-pink: 242 190 255;  /* pastel pink suave */
 
     --radius: 12px;
   }
 
-  /* Modo claro como modo alternativo (menos usado) */
   .light {
     --bg-1: 245 247 250;
     --bg-2: 232 236 243;
@@ -32,20 +30,17 @@
     --border: 0 0 0;
     --text: 18 26 41;
     --muted: 90 100 115;
-    --accent-cyan: 0 180 210;
-    --accent-amber: 245 176 40;
-    --accent-pink: 220 70 140;
+    --accent-cyan: 212 173 252;  /* mantiene la marca */
+    --accent-amber: 245 176 140;
+    --accent-pink: 220 160 240;
   }
 
-  /* Configuración por defecto como tema oscuro */
-  * {
-    @apply border-transparent;
-  }
+  * { @apply border-transparent; }
 
   body {
     color: rgb(var(--text));
     background:
-      radial-gradient(800px 300px at 10% -10%, rgba(var(--accent-cyan) / 0.04), transparent 40%),
+      radial-gradient(800px 300px at 10% -10%, rgba(var(--accent-cyan) / 0.05), transparent 40%),
       radial-gradient(700px 300px at 110% -20%, rgba(var(--accent-amber) / 0.04), transparent 40%),
       linear-gradient(180deg, rgb(var(--bg-2)) 0%, rgb(var(--bg-1)) 100%);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Poppins', 'SF Pro Display', sans-serif;
@@ -58,7 +53,7 @@
   h2 { font-weight: 700; letter-spacing: 0.005em; }
   .heading-xl { font-size: 3rem; line-height: 1.1; }
   .heading-lg { font-size: 2rem; }
-  .subtitle { font-size: 1.125rem; font-weight: 600; color:  rgb(232, 237, 238); }
+  .subtitle { font-size: 1.125rem; font-weight: 600; color: rgb(232, 237, 238); }
   .metric { font-size: 2.5rem; font-weight: 700; }
   .metric-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 }
@@ -87,25 +82,29 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, rgba(var(--accent-cyan) / 1), rgba(120, 90, 210, 0.9));
+    background: linear-gradient(
+      135deg,
+      rgba(var(--accent-cyan) / 1),
+      rgba(170, 135, 245, 0.92)
+    );
     color: #0f0f17;
     padding: 12px 24px;
     border-radius: 12px;
-    border: 1px solid rgba(var(--accent-cyan) / 0.5);
+    border: 1px solid rgba(var(--accent-cyan) / 0.45);
     box-shadow: 0 6px 20px rgba(var(--accent-cyan) / 0.22);
   }
-  .btn-primary:hover { filter: brightness(1.04); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(var(--accent-cyan) / 0.25); }
+  .btn-primary:hover { filter: brightness(1.04); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(var(--accent-cyan) / 0.28); }
 
   .btn-secondary {
     background: transparent;
     color: rgb(var(--accent-cyan));
     padding: 12px 24px;
     border-radius: 12px;
-    border: 1px solid rgba(var(--accent-cyan) / 0.5);
-    box-shadow: 0 0 0 rgba(0,0,0,0);
+    border: 1px solid rgba(var(--accent-cyan) / 0.45);
+    box-shadow: none;
     transition: all 0.3s ease;
   }
-  .btn-secondary:hover { background: rgba(var(--accent-cyan) / 0.10); box-shadow: 0 0 18px rgba(var(--accent-cyan) / 0.22); transform: translateY(-2px); }
+  .btn-secondary:hover { background: rgba(var(--accent-cyan) / 0.10); box-shadow: 0 0 18px rgba(var(--accent-cyan) / 0.18); transform: translateY(-2px); }
 
   .badge {
     padding: 6px 12px;
@@ -114,14 +113,14 @@
     border: 1px solid currentColor;
     backdrop-filter: blur(6px);
   }
-  .badge-live { color: rgb(var(--accent-cyan)); background: rgba(3, 253, 57, 0.16); animation: pulse-live 2s ease-in-out infinite; }
-  .badge-amber { color: rgb(var(--accent-amber)); background: rgba(18, 231, 11, 0.16); }
+  /* ahora usa el acento pastel, sin verde */
+  .badge-live { color: rgb(var(--accent-cyan)); background: rgba(var(--accent-cyan) / 0.16); animation: pulse-live 2s ease-in-out infinite; }
+  .badge-amber { color: rgb(var(--accent-amber)); background: rgba(var(--accent-amber) / 0.16); }
 
-  /* Variantes de badge sin animación */
   .badge-cyan { color: rgb(var(--accent-cyan)); background: rgba(var(--accent-cyan) / 0.14); }
-  .badge-pink { color: rgb(var(--accent-pink)); background: rgba(255,80,160,0.16); }
+  .badge-pink { color: rgb(var(--accent-pink)); background: rgba(var(--accent-pink) / 0.16); }
 
-  /* Estado TP/BE/SL como badges de estado */
+  /* Estado TP/BE/SL (igual que antes) */
   .status-tp {
     color: rgb(34,197,94);
     background: rgba(34,197,94,0.16);
@@ -141,7 +140,7 @@
     padding: 6px 12px; border-radius: 9999px; font-weight: 700;
   }
 
-  /* Chips para selección múltiple */
+  /* Chips */
   .chip {
     padding: 6px 12px;
     border-radius: 9999px;
@@ -151,25 +150,22 @@
     transition: all 0.2s ease;
     backdrop-filter: blur(4px);
   }
-  .chip:hover {
-    background: rgba(var(--accent-cyan) / 0.07);
-    box-shadow: 0 0 10px rgba(var(--accent-cyan) / 0.16);
-  }
+  .chip:hover { background: rgba(var(--accent-cyan) / 0.07); box-shadow: 0 0 10px rgba(var(--accent-cyan) / 0.16); }
   .chip-selected {
     color: rgb(var(--accent-cyan));
     border-color: rgba(var(--accent-cyan) / 0.5);
-    background: rgba(0,229,255,0.16);
-    box-shadow: 0 0 16px rgba(0,229,255,0.25);
+    background: rgba(var(--accent-cyan) / 0.16);
+    box-shadow: 0 0 16px rgba(var(--accent-cyan) / 0.22);
   }
 
   .glow-cyan { box-shadow: 0 0 24px rgba(var(--accent-cyan) / 0.20); }
-  .glow-amber { box-shadow: 0 0 24px rgba(255,196,54,0.25); }
+  .glow-amber { box-shadow: 0 0 24px rgba(var(--accent-amber) / 0.25); }
 }
 
 /* Animaciones */
 @keyframes pulse-live {
-  0%, 100% { box-shadow: 0 0 12px rgba(0,229,255,0.35), 0 0 24px rgba(0,229,255,0.2); }
-  50% { box-shadow: 0 0 22px rgba(0,229,255,0.6), 0 0 36px rgba(0,229,255,0.35); }
+  0%, 100% { box-shadow: 0 0 12px rgba(var(--accent-cyan) / 0.35), 0 0 24px rgba(var(--accent-cyan) / 0.20); }
+  50% { box-shadow: 0 0 22px rgba(var(--accent-cyan) / 0.55), 0 0 36px rgba(var(--accent-cyan) / 0.30); }
 }
 
 @layer components {
