@@ -99,6 +99,11 @@ async def create_day_journal(day_journal: DayJournalCreate):
 
     return DayJournal(**created_day_journal_data)
 
+# Alias sin barra final para soportar POST /day-journal además de /day-journal/
+@router.post("", response_model=DayJournal)
+async def create_day_journal_no_slash(day_journal: DayJournalCreate):
+    return await create_day_journal(day_journal)
+
 @router.put("/{day_journal_id}", response_model=DayJournal)
 async def update_day_journal(day_journal_id: str, day_journal_update: DayJournalUpdate):
     """Actualizar un day_journal existente"""
