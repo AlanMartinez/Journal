@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Any, TypeVar, Generic
+from datetime import date
 
 T = TypeVar('T')
 
@@ -34,4 +35,9 @@ class BaseDataService(ABC):
     @abstractmethod
     async def get_count(self) -> int:
         """Obtener el conteo total de elementos"""
+        pass
+    
+    @abstractmethod
+    async def get_by_date_range(self, start_date: date, end_date: date, date_field: str = 'date') -> List[Dict[str, Any]]:
+        """Obtener elementos en un rango de fechas"""
         pass

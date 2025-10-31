@@ -62,3 +62,37 @@ export async function deleteConfirmation(id) {
 export async function getTradeStatsSummary() {
   return http('/trades/stats/summary')
 }
+
+// Day Journal
+export async function getDayJournals() {
+  return http('/day-journal')
+}
+
+export async function getDayJournalById(id) {
+  return http(`/day-journal/${encodeURIComponent(id)}`)
+}
+
+export async function createDayJournal(data) {
+  return http('/day-journal', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function updateDayJournal(id, data) {
+  return http(`/day-journal/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
+export async function deleteDayJournal(id) {
+  return http(`/day-journal/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export async function getDayJournalsByDateRange(startDate, endDate) {
+  const params = new URLSearchParams({
+    start_date: startDate,
+    end_date: endDate
+  })
+  return http(`/day-journal/range?${params}`)
+}
+
+// Export
+export async function exportAllData() {
+  return http('/export/all')
+}

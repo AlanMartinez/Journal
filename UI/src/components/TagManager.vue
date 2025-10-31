@@ -5,13 +5,13 @@
     </div>
 
     <div v-if="loading" class="text-white/70 mb-4">Cargando {{ prettyTitle.toLowerCase() }}...</div>
-    <div v-else-if="error" class="text-red-400 mb-4">{{ error }}</div>
+    <div v-else-if="error" class="text-red-400 mb-4">Error al cargar {{ prettyTitle.toLowerCase() }}: {{ error }}</div>
     <div v-else class="flex flex-wrap gap-2 mb-4">
       <span v-for="tag in list" :key="tag" class="badge badge-cyan inline-flex items-center gap-2">
         {{ tag }}
         <button type="button" class="btn-secondary px-2 py-0.5" @click="remove(tag)">x</button>
       </span>
-      <span v-if="!list || list.length === 0" class="text-white/60">No hay elementos.</span>
+      <span v-if="!list || list.length === 0" class="text-white/60">No hay elementos. Agrega uno nuevo abajo.</span>
     </div>
 
     <form @submit.prevent="add" class="flex items-center gap-2">
@@ -48,8 +48,12 @@ function remove(tag) {
 }
 
 async function ensureLoaded() {
-  if (!Array.isArray(list.value) || list.value.length === 0) {
-    await store.loadAll()
+  try {
+    if (!Array.isArray(list.value) || list.value.length === 0) {
+      await store.loadAll()
+    }
+  } catch (err) {
+    console.error(`Error loading ${props.type}:`, err)
   }
 }
 

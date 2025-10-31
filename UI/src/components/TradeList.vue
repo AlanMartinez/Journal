@@ -107,7 +107,7 @@
     </table>
     </div>
 
-     <div class="flex flex-col items-center mb-6">
+     <div class="flex flex-col items-center mt-2">
       <div class="flex items-center gap-1 bg-panel-2/50 rounded-xl p-1 border border-white/5 shadow-lg">
         <button 
           @click="previousPage" 
@@ -146,6 +146,11 @@
     </div>
    
     
+    
+    <!-- Tag Manager Modal -->
+    <Modal :modelValue="!!showManagerFor" @update:modelValue="val => !val && (showManagerFor = null)" :title="showManagerFor === 'emotions' ? 'Administrar Emociones' : 'Administrar Confirmaciones'">
+      <TagManager :type="showManagerFor" />
+    </Modal>
   </div>
 </template>
 
@@ -290,8 +295,13 @@ function tradeLink(t) {
 }
 
 async function openManager(type) {
-  await optionsStore.loadAll()
-  showManagerFor.value = type
+  try {
+    await optionsStore.loadAll()
+  } catch (error) {
+    console.error('Error loading options:', error)
+  } finally {
+    showManagerFor.value = type
+  }
 }
 </script>
 

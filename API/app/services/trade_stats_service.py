@@ -32,6 +32,24 @@ class TradeStatsService:
     def compute_win_rate(self, winning_trades: int, total_trades: int) -> float:
         return (winning_trades / total_trades * 100.0) if total_trades > 0 else 0.0
 
+    def compute_avg_risk(self, trades: List[Dict]) -> float:
+        risks: List[float] = []
+        for trade in trades:
+            if trade.get("status") != "TP":
+                continue
+
+            risk = trade.get("risk")
+            if risk is None:
+                continue
+            try:
+                risks.append(float(risk))
+            except Exception:
+                # Ignore non-numeric risk values
+                pass
+        if not risks:
+            return 0.0
+        return sum(risks) / len(risks)
+
     def get_summary(self) -> Dict:
         total_trades = self.compute_total_trades()
         trades_data = trade_service.get_all()
@@ -51,6 +69,7 @@ class TradeStatsService:
         losing_trades = self.compute_losing_trades(trades_data)
         avg_pnl = self.compute_avg_pnl(total_pnl, total_trades)
         win_rate = self.compute_win_rate(winning_trades, total_trades)
+        avg_risk = self.compute_avg_risk(trades_data)
 
         return {
             "total_trades": total_trades,
@@ -59,6 +78,7 @@ class TradeStatsService:
             "winning_trades": winning_trades,
             "losing_trades": losing_trades,
             "win_rate": round(win_rate, 2),
+            "avg_risk": round(avg_risk, 2),
         }
 
 

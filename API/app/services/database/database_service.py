@@ -34,3 +34,8 @@ class DatabaseService(ABC):
     async def get_count(self) -> int:
         """Obtener el número total de registros"""
         pass
+
+    @abstractmethod
+    async def get_by_date_range(self, start_date: date, end_date: date, date_field: str = 'date') -> List[Dict]:
+        """Obtener registros en un rango de fechas"""
+        pass

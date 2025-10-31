@@ -29,6 +29,13 @@ async def get_trades(skip: int = 0, limit: int = 100):
                 pass
         trades.append(Trade(**trade_data))
 
+    # Ordenar por fecha descendente
+    try:
+        trades.sort(key=lambda t: t.date, reverse=True)
+    except Exception:
+        # Si algo falla en la comparación, devolver sin ordenar
+        pass
+
     return trades
 
 @router.get("/{trade_id}", response_model=Trade)

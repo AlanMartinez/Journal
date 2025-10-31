@@ -24,7 +24,7 @@ from app.services.trade_service import create_trade_service
 trade_service = create_trade_service(use_in_memory=(ENV == 'development'))
 
 # Importar rutas después de inicializar los servicios
-from app.routes import trades, emotions, confirmations
+from app.routes import trades, emotions, confirmations, day_journal, export
 
 app = FastAPI(
     title=API_TITLE,
@@ -45,6 +45,8 @@ app.add_middleware(
 app.include_router(trades.router)
 app.include_router(emotions.router)
 app.include_router(confirmations.router)
+app.include_router(day_journal.router)
+app.include_router(export.router)
 
 @app.get("/")
 async def root():

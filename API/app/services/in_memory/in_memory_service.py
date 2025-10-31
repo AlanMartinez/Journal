@@ -1,10 +1,11 @@
 from typing import List, Dict, Optional, Any
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 from ..database.base_data_service import BaseDataService
 from .mocks.trade_mocks import TRADE_MOCK_DATA
 from .mocks.confirmation_mocks import CONFIRMATION_MOCK_DATA
 from .mocks.emotion_mocks import EMOTION_MOCK_DATA
+from .mocks.day_journal_mocks import DAY_JOURNAL_MOCK_DATA
 
 class InMemoryService(BaseDataService):
     """Implementación en memoria de BaseDataService para desarrollo local"""
@@ -22,6 +23,8 @@ class InMemoryService(BaseDataService):
             self.data = CONFIRMATION_MOCK_DATA.copy()
         elif self.collection_name == "emotions":
             self.data = EMOTION_MOCK_DATA.copy()
+        elif self.collection_name == "trades_day_journal" or self.collection_name.endswith("_day_journal"):
+            self.data = DAY_JOURNAL_MOCK_DATA.copy()
 
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
         """Obtener todos los elementos"""
@@ -56,3 +59,27 @@ class InMemoryService(BaseDataService):
     async def get_count(self) -> int:
         """Obtener el conteo total de elementos"""
         return len(self.data)
+
+    async def get_by_date_range(self, start_date: date, end_date: date, date_field: str = 'date') -> List[Dict[str, Any]]:
+        """Obtener elementos en un rango de fechas"""
+        start_date_str = start_date.isoformat()
+        end_date_str = end_date.isoformat()
+        
+        results = []
+        for item in self.data.values():
+            item_date = item.get(date_field)
+            if item_date:
+                # Si la fecha está como string, convertirla para comparar
+                if isinstance(item_date, str):
+                    try:
+                        item_date_obj = date.fromisoformat(item_date)
+                    except (ValueError, AttributeError):
+                        # Si no se puede parsear, saltar este item
+                        continue
+                    if start_date <= item_date_obj <= end_date:
+                        results.append(item)
+                elif isinstance(item_date, date):
+                    if start_date <= item_date <= end_date:
+                        results.append(item)
+        
+        return results

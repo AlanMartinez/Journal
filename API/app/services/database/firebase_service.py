@@ -1,6 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 from typing import Dict, List, Optional
+from datetime import date
 import os
 
 from app.services.database.database_service import DatabaseService
@@ -206,6 +207,36 @@ class FirebaseService(DatabaseService):
         except Exception as e:
             print(f"❌ Error contando trades: {e}")
             return 0
+
+    async def get_by_date_range(self, start_date: date, end_date: date, date_field: str = 'date') -> List[Dict]:
+        """Obtener documentos en un rango de fechas"""
+        try:
+            from datetime import datetime
+            
+            # Convertir fechas a strings ISO para comparación en Firestore
+            start_date_str = start_date.isoformat()
+            end_date_str = end_date.isoformat()
+            
+            # Consultar Firestore por rango de fechas
+            col_ref = self.db.collection(self.collection_name)
+            query = col_ref.where(date_field, '>=', start_date_str).where(date_field, '<=', end_date_str)
+            
+            items: List[Dict] = []
+            docs = query.stream()
+            for doc in docs:
+                data = doc.to_dict()
+                data['id'] = doc.id
+                items.append(data)
+            
+            try:
+                print(f"ℹ️ get_by_date_range: collection={self.collection_name}, start={start_date_str}, end={end_date_str}, count={len(items)}")
+            except Exception:
+                pass
+            
+            return items
+        except Exception as e:
+            print(f"❌ Error obteniendo documentos por rango de fechas de {self.collection_name}: {e}")
+            return []
 
     def _prepare_data_for_firestore(self, data: Dict) -> Dict:
         """Preparar datos para almacenamiento en Firestore"""
