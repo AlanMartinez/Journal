@@ -17,6 +17,16 @@ from config import (
 ENV = os.getenv('ENV', 'development')
 print(f"Iniciando aplicación en modo: {ENV}")
 
+# Inicializar Firebase Admin para autenticación
+# Esto asegura que Firebase esté disponible para verificar tokens
+from app.auth import get_firebase_auth
+try:
+    get_firebase_auth()
+    print("✅ Firebase Admin inicializado para autenticación")
+except Exception as e:
+    print(f"⚠️  Advertencia: No se pudo inicializar Firebase Admin: {e}")
+    print("   La autenticación requerirá credenciales válidas")
+
 # Inicializar servicios
 from app.services.trade_service import create_trade_service
 
@@ -24,7 +34,8 @@ from app.services.trade_service import create_trade_service
 trade_service = create_trade_service(use_in_memory=(ENV == 'development'))
 
 # Importar rutas después de inicializar los servicios
-from app.routes import trades, emotions, confirmations, day_journal, export
+from app.routes import trades, emotions, confirmations, day_journal, export, auth
+from app.auth import get_current_user
 
 app = FastAPI(
     title=API_TITLE,
@@ -42,6 +53,7 @@ app.add_middleware(
 )
 
 # Incluir rutas
+app.include_router(auth.router)
 app.include_router(trades.router)
 app.include_router(emotions.router)
 app.include_router(confirmations.router)
@@ -55,6 +67,11 @@ async def root():
 @app.get("/echo")
 async def echo():
     return {"message": "hola mundo"}
+
+@app.get("/api/user")
+async def get_user(user: dict = Depends(get_current_user)):
+    """Obtener información del usuario autenticado"""
+    return {"uid": user["uid"], "email": user["email"], "name": user["name"]}
 
 if __name__ == "__main__":
     uvicorn.run(

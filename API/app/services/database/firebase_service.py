@@ -91,10 +91,14 @@ class FirebaseService(DatabaseService):
                 print(f"❌ Error inicializando Firebase: {e}")
                 print("🔄 Continuando en modo de desarrollo...")
 
-    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Dict]:
+    async def get_all(self, skip: int = 0, limit: int = 100, user_id: Optional[str] = None) -> List[Dict]:
         """Obtener documentos de la colección actual con ordenamiento seguro"""
         try:
             col_ref = self.db.collection(self.collection_name)
+
+            # Filtrar por user_id si se proporciona
+            if user_id:
+                col_ref = col_ref.where('user_id', '==', user_id)
 
             # Para colecciones de tags preferimos stream sin orden para evitar inconsistencias
             if self.collection_name.endswith('_emotions') or self.collection_name.endswith('_confirmations'):
@@ -118,7 +122,7 @@ class FirebaseService(DatabaseService):
                 items.append(data)
             try:
                 ids_preview = [d.get('id') for d in items[:5]]
-                print(f"ℹ️ get_all: collection={self.collection_name}, count={len(items)}, ids={ids_preview}")
+                print(f"ℹ️ get_all: collection={self.collection_name}, count={len(items)}, ids={ids_preview}, user_id={user_id}")
             except Exception:
                 pass
             return items
@@ -126,13 +130,16 @@ class FirebaseService(DatabaseService):
             print(f"❌ Error obteniendo documentos de {self.collection_name}: {e}")
             return []
 
-    async def get_by_id(self, record_id: str) -> Optional[Dict]:
+    async def get_by_id(self, record_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         """Obtener un trade por ID"""
         try:
             doc = self.db.collection(self.collection_name).document(record_id).get()
             if doc.exists:
                 trade_data = doc.to_dict()
                 trade_data['id'] = doc.id
+                # Verificar que el registro pertenece al usuario si se proporciona user_id
+                if user_id and trade_data.get('user_id') != user_id:
+                    return None
                 return trade_data
             return None
         except Exception as e:
@@ -163,9 +170,19 @@ class FirebaseService(DatabaseService):
             print(f"❌ Error creando trade: {e}")
             raise
 
-    async def update(self, record_id: str, data: Dict) -> Optional[Dict]:
+    async def update(self, record_id: str, data: Dict, user_id: Optional[str] = None) -> Optional[Dict]:
         """Actualizar un trade existente"""
         try:
+            # Verificar que el documento pertenece al usuario si se proporciona user_id
+            if user_id:
+                doc_ref = self.db.collection(self.collection_name).document(record_id)
+                existing_doc = doc_ref.get()
+                if not existing_doc.exists:
+                    return None
+                existing_data = existing_doc.to_dict()
+                if existing_data.get('user_id') != user_id:
+                    return None
+            
             # Preparar datos para Firestore
             update_data = self._prepare_data_for_firestore(data)
 
@@ -184,11 +201,11 @@ class FirebaseService(DatabaseService):
             print(f"❌ Error actualizando trade {record_id}: {e}")
             return None
 
-    async def delete(self, record_id: str) -> Optional[Dict]:
+    async def delete(self, record_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         """Eliminar un trade"""
         try:
             # Obtener datos antes de eliminar
-            trade = await self.get_by_id(record_id)
+            trade = await self.get_by_id(record_id, user_id=user_id)
             if trade is None:
                 return None
 
@@ -199,16 +216,20 @@ class FirebaseService(DatabaseService):
             print(f"❌ Error eliminando trade {record_id}: {e}")
             return None
 
-    async def get_count(self) -> int:
+    async def get_count(self, user_id: Optional[str] = None) -> int:
         """Obtener el número total de trades"""
         try:
-            docs = self.db.collection(self.collection_name).stream()
+            col_ref = self.db.collection(self.collection_name)
+            # Filtrar por user_id si se proporciona
+            if user_id:
+                col_ref = col_ref.where('user_id', '==', user_id)
+            docs = col_ref.stream()
             return sum(1 for _ in docs)
         except Exception as e:
             print(f"❌ Error contando trades: {e}")
             return 0
 
-    async def get_by_date_range(self, start_date: date, end_date: date, date_field: str = 'date') -> List[Dict]:
+    async def get_by_date_range(self, start_date: date, end_date: date, date_field: str = 'date', user_id: Optional[str] = None) -> List[Dict]:
         """Obtener documentos en un rango de fechas"""
         try:
             from datetime import datetime
@@ -221,6 +242,10 @@ class FirebaseService(DatabaseService):
             col_ref = self.db.collection(self.collection_name)
             query = col_ref.where(date_field, '>=', start_date_str).where(date_field, '<=', end_date_str)
             
+            # Filtrar por user_id si se proporciona
+            if user_id:
+                query = query.where('user_id', '==', user_id)
+            
             items: List[Dict] = []
             docs = query.stream()
             for doc in docs:
@@ -229,7 +254,7 @@ class FirebaseService(DatabaseService):
                 items.append(data)
             
             try:
-                print(f"ℹ️ get_by_date_range: collection={self.collection_name}, start={start_date_str}, end={end_date_str}, count={len(items)}")
+                print(f"ℹ️ get_by_date_range: collection={self.collection_name}, start={start_date_str}, end={end_date_str}, count={len(items)}, user_id={user_id}")
             except Exception:
                 pass
             

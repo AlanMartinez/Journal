@@ -69,12 +69,12 @@
       </div>
       <div class="sm:col-span-2">
         <label class="subtitle block mb-1">Notas</label>
-        <textarea v-model.trim="form.notes" rows="4" class="input w-full" placeholder="Contexto, setup, gestión, mejoras..."></textarea>
+        <textarea v-model.trim="form.notes" rows="4" class="input w-full" placeholder="Detalles del setup, gestión del riesgo, lecciones aprendidas..."></textarea>
       </div>
     </div>
 
     <div class="mt-2">
-      <label class="subtitle block mb-1">Trade Link</label>
+      <label class="subtitle block mb-1">Enlace de la Operación</label>
       <input v-model.trim="form.tradingLink" type="url" class="input w-full" placeholder="https://..." />
     </div>
 
@@ -110,7 +110,7 @@
       </div>
       <div class="flex items-center justify-end gap-3 w-full">
         <button type="button" class="btn-secondary" @click="$emit('cancel')">Cancelar</button>
-        <button type="submit" class="btn-primary">Guardar Trade</button>
+        <button type="submit" class="btn-primary">Guardar Operación</button>
       </div>
     </div>
   </form>

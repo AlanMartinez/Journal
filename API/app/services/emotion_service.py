@@ -60,24 +60,27 @@ class EmotionService:
         except Exception as e:
             print(f"Error verificando datos de emotions: {e}")
 
-    def get_all(self) -> List[Dict]:
+    def get_all(self, user_id: Optional[str] = None) -> List[Dict]:
         """Obtener todas las emotions"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async, self.db.get_all())
+                    future = executor.submit(self._run_async, self.db.get_all(user_id=user_id))
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.get_all())
+                return loop.run_until_complete(self.db.get_all(user_id=user_id))
         except Exception as e:
             print(f"Error en get_all emotions: {e}")
             return []
 
-    def create(self, emotion_data: Dict) -> Dict:
+    def create(self, emotion_data: Dict, user_id: Optional[str] = None) -> Dict:
         """Crear una nueva emotion"""
         try:
+            # Agregar user_id al emotion_data si se proporciona
+            if user_id:
+                emotion_data['user_id'] = user_id
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
@@ -90,17 +93,24 @@ class EmotionService:
             print(f"Error en create emotion: {e}")
             raise
 
-    def delete(self, emotion_id: str) -> Optional[Dict]:
+    def delete(self, emotion_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         """Eliminar una emotion"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async_delete, emotion_id)
+                    future = executor.submit(self._run_async_delete, emotion_id, user_id)
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.delete(emotion_id))
+                result = loop.run_until_complete(self.db.delete(emotion_id, user_id=user_id))
+                # InMemoryService retorna bool, FirebaseService retorna Dict o None
+                if isinstance(result, bool):
+                    if result:
+                        # Obtener el registro antes de eliminarlo para retornarlo
+                        return loop.run_until_complete(self.db.get_by_id(emotion_id, user_id=user_id))
+                    return None
+                return result
         except Exception as e:
             print(f"Error en delete emotion: {e}")
             return None
@@ -137,11 +147,16 @@ class EmotionService:
         finally:
             loop.close()
 
-    def _run_async_delete(self, emotion_id):
+    def _run_async_delete(self, emotion_id, user_id=None):
         """Ejecutar delete en event loop"""
         loop = asyncio.new_event_loop()
         try:
-            return loop.run_until_complete(self.db.delete(emotion_id))
+            result = loop.run_until_complete(self.db.delete(emotion_id, user_id=user_id))
+            if isinstance(result, bool):
+                if result:
+                    return loop.run_until_complete(self.db.get_by_id(emotion_id, user_id=user_id))
+                return None
+            return result
         finally:
             loop.close()
 

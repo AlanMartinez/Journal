@@ -11,7 +11,7 @@
         {{ tag }}
         <button type="button" class="btn-secondary px-2 py-0.5" @click="remove(tag)">x</button>
       </span>
-      <span v-if="!list || list.length === 0" class="text-white/60">No hay elementos. Agrega uno nuevo abajo.</span>
+      <span v-if="!list || list.length === 0" class="text-white/60">No hay opciones disponibles. Agrega una nueva abajo.</span>
     </div>
 
     <form @submit.prevent="add" class="flex items-center gap-2">

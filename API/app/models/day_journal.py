@@ -7,6 +7,7 @@ class DayJournalBase(BaseModel):
     date: date
     break_trading_plan: bool = False
     notes: Optional[str] = None
+    user_id: Optional[str] = None  # ID del usuario propietario
 
 class DayJournalCreate(DayJournalBase):
     """Modelo para crear day_journal"""

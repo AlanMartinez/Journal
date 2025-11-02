@@ -25,15 +25,15 @@ class TradeService:
             else:
                 self.db = FirebaseService(FIREBASE_COLLECTION)
 
-    async def get_all_async(self, skip: int = 0, limit: int = 100) -> List[Dict]:
+    async def get_all_async(self, skip: int = 0, limit: int = 100, user_id: Optional[str] = None) -> List[Dict]:
         """Versión asíncrona para obtener todos los trades"""
         try:
-            return await self.db.get_all(skip, limit)
+            return await self.db.get_all(skip, limit, user_id=user_id)
         except Exception as e:
             print(f"Error en get_all_async: {e}")
             return []
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> List[Dict]:
+    def get_all(self, skip: int = 0, limit: int = 100, user_id: Optional[str] = None) -> List[Dict]:
         """Obtener todos los trades ordenados por fecha descendente"""
         try:
             loop = asyncio.get_event_loop()
@@ -42,33 +42,36 @@ class TradeService:
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(
                         asyncio.run, 
-                        self.get_all_async(skip, limit)
+                        self.get_all_async(skip, limit, user_id=user_id)
                     )
                     return future.result()
             else:
-                return loop.run_until_complete(self.get_all_async(skip, limit))
+                return loop.run_until_complete(self.get_all_async(skip, limit, user_id=user_id))
         except Exception as e:
             print(f"Error en get_all: {e}")
             return []
 
-    def get_by_id(self, trade_id: str) -> Optional[Dict]:
+    def get_by_id(self, trade_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         """Obtener un trade por ID"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async, self.db.get_by_id(trade_id))
+                    future = executor.submit(self._run_async, self.db.get_by_id(trade_id, user_id=user_id))
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.get_by_id(trade_id))
+                return loop.run_until_complete(self.db.get_by_id(trade_id, user_id=user_id))
         except Exception as e:
             print(f"Error en get_by_id: {e}")
             return None
 
-    def create(self, trade_data: Dict) -> Dict:
+    def create(self, trade_data: Dict, user_id: Optional[str] = None) -> Dict:
         """Crear un nuevo trade"""
         try:
+            # Agregar user_id al trade_data si se proporciona
+            if user_id:
+                trade_data['user_id'] = user_id
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
@@ -81,47 +84,54 @@ class TradeService:
             print(f"Error en create: {e}")
             raise
 
-    def update(self, trade_id: str, trade_data: Dict) -> Optional[Dict]:
+    def update(self, trade_id: str, trade_data: Dict, user_id: Optional[str] = None) -> Optional[Dict]:
         """Actualizar un trade existente"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async_update, trade_id, trade_data)
+                    future = executor.submit(self._run_async_update, trade_id, trade_data, user_id)
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.update(trade_id, trade_data))
+                return loop.run_until_complete(self.db.update(trade_id, trade_data, user_id=user_id))
         except Exception as e:
             print(f"Error en update: {e}")
             return None
 
-    def delete(self, trade_id: str) -> Optional[Dict]:
+    def delete(self, trade_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         """Eliminar un trade"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async_delete, trade_id)
+                    future = executor.submit(self._run_async_delete, trade_id, user_id)
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.delete(trade_id))
+                # Para FirebaseService, delete retorna Dict, para InMemoryService retorna bool
+                result = loop.run_until_complete(self.db.delete(trade_id, user_id=user_id))
+                if isinstance(result, bool):
+                    # InMemoryService retorna bool, necesitamos obtener el registro antes
+                    if result:
+                        return loop.run_until_complete(self.db.get_by_id(trade_id, user_id=user_id))
+                    return None
+                return result
         except Exception as e:
             print(f"Error en delete: {e}")
             return None
 
-    def get_count(self) -> int:
+    def get_count(self, user_id: Optional[str] = None) -> int:
         """Obtener el número total de trades"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async_count)
+                    future = executor.submit(self._run_async_count, user_id)
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.get_count())
+                return loop.run_until_complete(self.db.get_count(user_id=user_id))
         except Exception as e:
             print(f"Error en get_count: {e}")
             return 0
@@ -143,27 +153,33 @@ class TradeService:
         finally:
             loop.close()
 
-    def _run_async_update(self, trade_id, trade_data):
+    def _run_async_update(self, trade_id, trade_data, user_id=None):
         """Ejecutar update en event loop"""
         loop = asyncio.new_event_loop()
         try:
-            return loop.run_until_complete(self.db.update(trade_id, trade_data))
+            return loop.run_until_complete(self.db.update(trade_id, trade_data, user_id=user_id))
         finally:
             loop.close()
 
-    def _run_async_delete(self, trade_id):
+    def _run_async_delete(self, trade_id, user_id=None):
         """Ejecutar delete en event loop"""
         loop = asyncio.new_event_loop()
         try:
-            return loop.run_until_complete(self.db.delete(trade_id))
+            result = loop.run_until_complete(self.db.delete(trade_id, user_id=user_id))
+            if isinstance(result, bool):
+                # InMemoryService retorna bool
+                if result:
+                    return loop.run_until_complete(self.db.get_by_id(trade_id, user_id=user_id))
+                return None
+            return result
         finally:
             loop.close()
 
-    def _run_async_count(self):
+    def _run_async_count(self, user_id=None):
         """Ejecutar get_count en event loop"""
         loop = asyncio.new_event_loop()
         try:
-            return loop.run_until_complete(self.db.get_count())
+            return loop.run_until_complete(self.db.get_count(user_id=user_id))
         finally:
             loop.close()
 

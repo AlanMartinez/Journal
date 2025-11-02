@@ -41,7 +41,7 @@
               v-model="notes"
               rows="5"
               class="input w-full"
-              placeholder="Agrega comentarios generales sobre tus trades del día..."
+              placeholder="Reflexiones sobre la sesión, análisis del mercado, lecciones aprendidas..."
             ></textarea>
           </div>
 
@@ -74,9 +74,9 @@
       
       <!-- Trades List -->
       <div>
-        <h3 class="subtitle mb-4">Trades del día</h3>
+        <h3 class="subtitle mb-4">Operaciones del día</h3>
         <div v-if="dayTrades.length === 0" class="text-white/50 text-center py-8">
-          No hay trades para este día
+          No hay operaciones registradas para este día
         </div>
         <div v-else class="overflow-x-auto">
           <table class="w-full text-left align-middle">
@@ -155,7 +155,7 @@ function formatLocalISOToLongEs(dateStr) {
 
 const modalTitle = computed(() => {
   const formattedDate = formatLocalISOToLongEs(props.date)
-  return `Journal del día - ${formattedDate}`
+  return `Registro Diario - ${formattedDate}`
 })
 
 const dayTrades = computed(() => {
@@ -228,7 +228,7 @@ async function saveDayJournal() {
     emit('close')
   } catch (error) {
     console.error('Error saving day journal:', error)
-    alert('Error al guardar. Por favor intenta nuevamente.')
+    alert('No se pudo guardar el registro. Por favor intenta nuevamente.')
   } finally {
     saving.value = false
   }
