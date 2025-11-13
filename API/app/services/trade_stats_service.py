@@ -1,11 +1,11 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from app.services.trade_service import trade_service
 
 
 class TradeStatsService:
-    def compute_total_trades(self) -> int:
-        return trade_service.get_count()
+    def compute_total_trades(self, user_id: Optional[str] = None) -> int:
+        return trade_service.get_count(user_id=user_id)
 
     def compute_total_pnl(self, trades: List[Dict]) -> float:
         total = 0.0
@@ -50,9 +50,9 @@ class TradeStatsService:
             return 0.0
         return sum(risks) / len(risks)
 
-    def get_summary(self) -> Dict:
-        total_trades = self.compute_total_trades()
-        trades_data = trade_service.get_all()
+    def get_summary(self, user_id: Optional[str] = None) -> Dict:
+        total_trades = self.compute_total_trades(user_id=user_id)
+        trades_data = trade_service.get_all(user_id=user_id)
 
         if not trades_data:
             return {

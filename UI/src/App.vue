@@ -1,61 +1,42 @@
 <template>
   <div class="app-bg min-h-screen">
-    <nav class="navbar fixed top-0 left-0 right-0 z-10">
-      <div class="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <h1 class="title-glow text-xl font-bold tracking-wide">SinXa</h1>
-          <button 
-            @click="handleExport"
-            :disabled="isExporting"
-            class="btn-export w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Exportar datos"
-            aria-label="Exportar datos"
-          >
-            <svg v-if="!isExporting" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </button>
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="badge badge-live metric-mono">LIVE</span>
-        </div>
-      </div>
-    </nav>
-
-    <main class="mx-auto max-w-7xl px-6 pt-28 pb-12">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+    <main class="dashboard-container px-6 pt-12 pb-12">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
         <!-- Left column - Summary -->
-        <div class="lg:col-span-1 h-full">
-          <section class="panel p-6 md:p-6 h-full flex flex-col">
-            <div class="flex items-start justify-between gap-6">
+        <div class="lg:col-span-1 flex">
+          <section class="panel p-4 flex flex-col w-full">
+            <div class="flex items-center justify-between gap-6 mb-4">
               <div>
                 <h2 class="heading-lg title-glow">Resumen</h2>
-                <p class="subtitle mt-1">Rendimiento y métricas clave</p>
+                <p class="subtitle mt-1 text-sm">Rendimiento y métricas clave</p>
               </div>
+              <button 
+                class="trade-button" 
+                @click="handleNewTrade"
+                title="Registrar Operación"
+                aria-label="Registrar Operación"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </button>
             </div>
-            <div class="flex-grow mt-6">
-              <DashboardStats :stats="stats" />
-            </div>
+            <DashboardStats :stats="stats" />
           </section>
         </div>
 
         <!-- Right column - Journal -->
-        <div class="lg:col-span-2 h-full">
-          <Journal :trades="trades" class="h-full" />
+        <div class="lg:col-span-2 flex">
+          <Journal :trades="trades" class="w-full" />
         </div>
       </div>
 
-      <section class="panel p-6 md:p-8 mt-6">
+      <section class="panel p-6 md:p-8 mt-4">
         <div class="flex items-center justify-between">
-          <h2 class="heading-lg title-glow">Trades</h2>
-          <button class="btn-primary" @click="handleNewTrade">Log Trade</button>
+          <h2 class="heading-lg title-glow">Operaciones</h2>
         </div>
 
-        <div v-if="loading" class="text-white/70 mt-6">Cargando trades...</div>
+        <div v-if="loading" class="text-white/70 mt-6">Cargando operaciones...</div>
         <div v-else-if="error" class="text-red-400 mt-6">{{ error }}</div>
         <TradeList 
           v-else 
@@ -65,7 +46,7 @@
         />
       </section>
       
-      <Modal v-model="showLogModal" :title="editingTrade ? 'Editar Trade' : 'Nuevo Trade'">
+      <Modal v-model="showLogModal" :title="editingTrade ? 'Editar Operación' : 'Nueva Operación'">
         <TradeForm 
           :initial-data="editingTrade"
           @cancel="cancelEdit"
@@ -93,8 +74,9 @@ const components = {
   Journal,
   Modal
 }
-import { getTrades, createTrade, updateTrade, getTradeStatsSummary, exportAllData } from './api'
+import { getTrades, createTrade, updateTrade, getTradeStatsSummary } from './api'
 import { useOptionsStore } from './stores/optionsStore'
+import { useAuthStore } from './stores/authStore'
 
 const showLogModal = ref(false)
 const editingTrade = ref(null)
@@ -103,8 +85,9 @@ const stats = ref({ total_pnl: 0, avg_pnl: 0, total_trades: 0, win_rate: 0 })
 const loading = ref(false)
 const error = ref('')
 const optionsStore = useOptionsStore()
-const username = ref('Usuario')
-const isExporting = ref(false)
+const authStore = useAuthStore()
+
+const user = authStore.currentUser
 
 async function refreshTrades() {
   try {
@@ -179,10 +162,10 @@ async function handleSubmit(payload) {
       await createTrade(payload)
     }
     
-    // Actualizar la lista de trades en segundo plano
+    // Actualizar la lista de operaciones en segundo plano
     refreshTrades().catch(e => {
       console.error('Error refreshing trades:', e)
-      error.value = 'Error actualizando la lista de trades: ' + (e?.message || String(e))
+      error.value = 'Error actualizando la lista de operaciones: ' + (e?.message || String(e))
     })
     
     // Actualizar estadísticas en segundo plano
@@ -191,48 +174,12 @@ async function handleSubmit(payload) {
   } catch (e) {
     console.error('Error in handleSubmit:', e)
     // Mostrar error al usuario si algo falla
-    error.value = 'Error ' + (wasEditing ? 'actualizando' : 'creando') + ' el trade: ' + (e?.message || String(e))
+    error.value = 'Error ' + (wasEditing ? 'actualizando' : 'creando') + ' la operación: ' + (e?.message || String(e))
   } finally {
     loading.value = false
   }
 }
 
-async function handleExport() {
-  if (isExporting.value) return
-  
-  try {
-    isExporting.value = true
-    error.value = ''
-    
-    const data = await exportAllData()
-    
-    // Crear un blob con los datos JSON
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    
-    // Crear un enlace temporal para descargar
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    
-    // Nombre del archivo con la fecha actual
-    const date = new Date().toISOString().split('T')[0]
-    link.download = `trade-journal-export-${date}.json`
-    
-    // Trigger download
-    document.body.appendChild(link)
-    link.click()
-    
-    // Cleanup
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-    
-  } catch (e) {
-    console.error('Error exporting data:', e)
-    error.value = 'Error al exportar los datos: ' + (e?.message || String(e))
-  } finally {
-    isExporting.value = false
-  }
-}
 
 onMounted(async () => {
   await Promise.all([
@@ -242,4 +189,37 @@ onMounted(async () => {
   ])
 })
 </script>
+
+<style scoped>
+.dashboard-container {
+  max-width: 100%;
+  width: 100%;
+}
+
+.trade-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(var(--accent-cyan) / 1), rgba(170, 135, 245, 0.92));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f0f17;
+  box-shadow: 0 6px 20px rgba(var(--accent-cyan) / 0.3);
+  border: 2px solid rgba(var(--accent-cyan) / 0.4);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.trade-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(var(--accent-cyan) / 0.4);
+}
+
+.trade-button:active {
+  transform: scale(0.98);
+}
+</style>
 

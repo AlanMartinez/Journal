@@ -36,7 +36,7 @@
               </button>
             </div>
           </th>
-          <th class="py-2 pr-4">Link</th>
+          <th class="py-2 pr-4">Enlace</th>
           <th class="py-2 pr-4">Notas</th>
         </tr>
       </thead>

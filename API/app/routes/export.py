@@ -1,19 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import date
 
 from app.services.trade_service import trade_service
 from app.services.day_journal_service import day_journal_service
 from app.models.trade import Trade
 from app.models.day_journal import DayJournal
+from app.auth import get_current_user
 
 router = APIRouter(
     prefix="/export",
     tags=["export"],
 )
 
-def _get_all_records(service, batch_size: int = 1000) -> List[Dict]:
+def _get_all_records(service, batch_size: int = 1000, user_id: Optional[str] = None) -> List[Dict]:
     """
     Obtener todos los registros de un servicio usando paginación
     """
@@ -21,7 +22,22 @@ def _get_all_records(service, batch_size: int = 1000) -> List[Dict]:
     skip = 0
     
     while True:
-        batch = service.get_all(skip=skip, limit=batch_size)
+        # Intentar pasar user_id si está disponible y el servicio lo soporta
+        try:
+            if user_id:
+                # Intentar llamar con user_id primero (para servicios que lo soportan)
+                import inspect
+                sig = inspect.signature(service.get_all)
+                if 'user_id' in sig.parameters:
+                    batch = service.get_all(skip=skip, limit=batch_size, user_id=user_id)
+                else:
+                    batch = service.get_all(skip=skip, limit=batch_size)
+            else:
+                batch = service.get_all(skip=skip, limit=batch_size)
+        except TypeError:
+            # Si falla, intentar sin user_id
+            batch = service.get_all(skip=skip, limit=batch_size)
+        
         if not batch:
             break
         all_records.extend(batch)
@@ -35,13 +51,14 @@ def _get_all_records(service, batch_size: int = 1000) -> List[Dict]:
     return all_records
 
 @router.get("/all")
-async def export_all_data():
+async def export_all_data(user: dict = Depends(get_current_user)):
     """
     Exportar toda la información de las colecciones trades y dayjournal en formato JSON
     """
     try:
-        # Obtener todos los trades usando paginación
-        trades_data = _get_all_records(trade_service)
+        user_id = user['uid']
+        # Obtener todos los trades usando paginación filtrados por usuario
+        trades_data = _get_all_records(trade_service, user_id=user_id)
         
         # Convertir datos de trades a formato Pydantic
         trades = []
@@ -55,8 +72,8 @@ async def export_all_data():
             # Usar mode='json' para serializar fechas como strings ISO
             trades.append(Trade(**trade_data).model_dump(mode='json'))
         
-        # Obtener todos los day journals usando paginación
-        day_journals_data = _get_all_records(day_journal_service)
+        # Obtener todos los day journals usando paginación filtrados por usuario
+        day_journals_data = _get_all_records(day_journal_service, user_id=user_id)
         
         # Convertir datos de day journals a formato Pydantic
         day_journals = []

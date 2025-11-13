@@ -9,9 +9,22 @@ function toSnakeCasePayload(payload) {
   return out
 }
 
+// Función helper para obtener el token de autenticación
+function getAuthToken() {
+  return localStorage.getItem('auth_token')
+}
+
 async function http(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }
+  
+  // Agregar token de autenticación si existe
+  const token = getAuthToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    headers,
     ...options,
   })
   if (!res.ok) {
@@ -20,6 +33,14 @@ async function http(path, options = {}) {
   }
   const ct = res.headers.get('content-type') || ''
   return ct.includes('application/json') ? res.json() : res.text()
+}
+
+// Auth
+export async function exchangeFirebaseToken(idToken) {
+  return http('/auth/firebase', {
+    method: 'POST',
+    body: JSON.stringify({ id_token: idToken })
+  })
 }
 
 // Trades

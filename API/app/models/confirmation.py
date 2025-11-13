@@ -20,6 +20,7 @@ class ConfirmationBase(BaseModel):
     """Modelo base para confirmations"""
     name: str
     description: Optional[str] = None
+    user_id: Optional[str] = None  # ID del usuario propietario
 
 class ConfirmationCreate(ConfirmationBase):
     """Modelo para crear confirmations"""

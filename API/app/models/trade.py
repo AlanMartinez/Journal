@@ -15,6 +15,7 @@ class TradeBase(BaseModel):
     emotions: List[str] = []
     confirmations: List[str] = []
     trading_link: Optional[str] = None
+    user_id: Optional[str] = None  # ID del usuario propietario
 
 class TradeCreate(TradeBase):
     """Modelo para crear trades"""

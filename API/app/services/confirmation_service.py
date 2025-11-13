@@ -63,24 +63,27 @@ class ConfirmationService:
         except Exception as e:
             print(f"Error verificando datos de confirmations: {e}")
 
-    def get_all(self) -> List[Dict]:
+    def get_all(self, user_id: Optional[str] = None) -> List[Dict]:
         """Obtener todas las confirmations"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async, self.db.get_all())
+                    future = executor.submit(self._run_async, self.db.get_all(user_id=user_id))
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.get_all())
+                return loop.run_until_complete(self.db.get_all(user_id=user_id))
         except Exception as e:
             print(f"Error en get_all confirmations: {e}")
             return []
 
-    def create(self, confirmation_data: Dict) -> Dict:
+    def create(self, confirmation_data: Dict, user_id: Optional[str] = None) -> Dict:
         """Crear una nueva confirmation"""
         try:
+            # Agregar user_id al confirmation_data si se proporciona
+            if user_id:
+                confirmation_data['user_id'] = user_id
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
@@ -93,17 +96,24 @@ class ConfirmationService:
             print(f"Error en create confirmation: {e}")
             raise
 
-    def delete(self, confirmation_id: str) -> Optional[Dict]:
+    def delete(self, confirmation_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         """Eliminar una confirmation"""
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(self._run_async_delete, confirmation_id)
+                    future = executor.submit(self._run_async_delete, confirmation_id, user_id)
                     return future.result()
             else:
-                return loop.run_until_complete(self.db.delete(confirmation_id))
+                result = loop.run_until_complete(self.db.delete(confirmation_id, user_id=user_id))
+                # InMemoryService retorna bool, FirebaseService retorna Dict o None
+                if isinstance(result, bool):
+                    if result:
+                        # Obtener el registro antes de eliminarlo para retornarlo
+                        return loop.run_until_complete(self.db.get_by_id(confirmation_id, user_id=user_id))
+                    return None
+                return result
         except Exception as e:
             print(f"Error en delete confirmation: {e}")
             return None
@@ -140,11 +150,16 @@ class ConfirmationService:
         finally:
             loop.close()
 
-    def _run_async_delete(self, confirmation_id):
+    def _run_async_delete(self, confirmation_id, user_id=None):
         """Ejecutar delete en event loop"""
         loop = asyncio.new_event_loop()
         try:
-            return loop.run_until_complete(self.db.delete(confirmation_id))
+            result = loop.run_until_complete(self.db.delete(confirmation_id, user_id=user_id))
+            if isinstance(result, bool):
+                if result:
+                    return loop.run_until_complete(self.db.get_by_id(confirmation_id, user_id=user_id))
+                return None
+            return result
         finally:
             loop.close()
 

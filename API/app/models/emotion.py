@@ -5,6 +5,7 @@ class EmotionBase(BaseModel):
     """Modelo base para emotions"""
     name: str
     description: Optional[str] = None
+    user_id: Optional[str] = None  # ID del usuario propietario
 
 class EmotionCreate(EmotionBase):
     """Modelo para crear emotions"""
