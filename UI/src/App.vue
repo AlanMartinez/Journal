@@ -1,35 +1,39 @@
 <template>
   <div class="app-bg min-h-screen">
-    <!-- Nuevo Navbar Component -->
-    <Navbar />
-
-    <main class="mx-auto max-w-7xl px-6 pt-24 pb-12">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+    <main class="dashboard-container px-6 pt-12 pb-12">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
         <!-- Left column - Summary -->
-        <div class="lg:col-span-1 h-full">
-          <section class="panel p-6 md:p-6 h-full flex flex-col">
-            <div class="flex items-start justify-between gap-6">
+        <div class="lg:col-span-1 flex">
+          <section class="panel p-4 flex flex-col w-full">
+            <div class="flex items-center justify-between gap-6 mb-4">
               <div>
                 <h2 class="heading-lg title-glow">Resumen</h2>
-                <p class="subtitle mt-1">Rendimiento y métricas clave</p>
+                <p class="subtitle mt-1 text-sm">Rendimiento y métricas clave</p>
               </div>
+              <button 
+                class="trade-button" 
+                @click="handleNewTrade"
+                title="Registrar Operación"
+                aria-label="Registrar Operación"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </button>
             </div>
-            <div class="flex-grow mt-6">
-              <DashboardStats :stats="stats" />
-            </div>
+            <DashboardStats :stats="stats" />
           </section>
         </div>
 
         <!-- Right column - Journal -->
-        <div class="lg:col-span-2 h-full">
-          <Journal :trades="trades" class="h-full" />
+        <div class="lg:col-span-2 flex">
+          <Journal :trades="trades" class="w-full" />
         </div>
       </div>
 
-      <section class="panel p-6 md:p-8 mt-6">
+      <section class="panel p-6 md:p-8 mt-4">
         <div class="flex items-center justify-between">
           <h2 class="heading-lg title-glow">Operaciones</h2>
-          <button class="btn-primary" @click="handleNewTrade">Registrar Operación</button>
         </div>
 
         <div v-if="loading" class="text-white/70 mt-6">Cargando operaciones...</div>
@@ -61,7 +65,6 @@ import TradeForm from './components/TradeForm.vue'
 import DashboardStats from './components/DashboardStats.vue'
 import Journal from './components/Journal.vue'
 import Modal from './components/Modal.vue'
-import Navbar from './components/Navbar.vue'
 
 // Register components
 const components = {
@@ -186,4 +189,37 @@ onMounted(async () => {
   ])
 })
 </script>
+
+<style scoped>
+.dashboard-container {
+  max-width: 100%;
+  width: 100%;
+}
+
+.trade-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(var(--accent-cyan) / 1), rgba(170, 135, 245, 0.92));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0f0f17;
+  box-shadow: 0 6px 20px rgba(var(--accent-cyan) / 0.3);
+  border: 2px solid rgba(var(--accent-cyan) / 0.4);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.trade-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(var(--accent-cyan) / 0.4);
+}
+
+.trade-button:active {
+  transform: scale(0.98);
+}
+</style>
 

@@ -93,6 +93,7 @@ async def verify_token(authorization: Optional[str] = Header(None)) -> Dict:
     Dependencia de FastAPI para verificar tokens de Firebase Authentication.
     
     Extrae el token del header Authorization y lo valida contra Firebase.
+    En modo development, también acepta tokens demo que empiezan con "demo_token_".
     
     Args:
         authorization: Header Authorization con formato "Bearer <token>"
@@ -103,16 +104,6 @@ async def verify_token(authorization: Optional[str] = Header(None)) -> Dict:
     Raises:
         HTTPException: 401 si el token es inválido o falta
     """
-    # Asegurar que Firebase Admin esté inicializado
-    get_firebase_auth()
-    
-    # Verificar que Firebase esté inicializado
-    if not firebase_admin._apps:
-        raise HTTPException(
-            status_code=500,
-            detail="Firebase Admin not initialized. Please configure Firebase credentials."
-        )
-    
     if not authorization:
         raise HTTPException(
             status_code=401,
@@ -131,6 +122,28 @@ async def verify_token(authorization: Optional[str] = Header(None)) -> Dict:
         raise HTTPException(
             status_code=401,
             detail="Token missing in authorization header"
+        )
+    
+    # Modo demo: en development, aceptar tokens que empiezan con "demo_token_"
+    ENV = os.getenv('ENV', 'development')
+    if ENV == 'development' and token.startswith('demo_token_'):
+        # Retornar un token demo válido
+        return {
+            "uid": "demo_user",
+            "email": "demo@tradejournal.com",
+            "name": "Usuario Demo",
+            "display_name": "Usuario Demo",
+            "demo_mode": True
+        }
+    
+    # Asegurar que Firebase Admin esté inicializado
+    get_firebase_auth()
+    
+    # Verificar que Firebase esté inicializado
+    if not firebase_admin._apps:
+        raise HTTPException(
+            status_code=500,
+            detail="Firebase Admin not initialized. Please configure Firebase credentials."
         )
     
     try:
@@ -162,12 +175,13 @@ async def get_current_user(decoded_token: Dict = Depends(verify_token)) -> Dict:
         decoded_token: Token decodificado de Firebase
     
     Returns:
-        Dict con uid, email, name del usuario
+        Dict con uid, email, name del usuario y demo_mode si aplica
     """
     return {
         "uid": decoded_token.get("uid"),
         "email": decoded_token.get("email"),
         "name": decoded_token.get("name") or decoded_token.get("display_name"),
+        "demo_mode": decoded_token.get("demo_mode", False),
         "firebase_claims": decoded_token
     }
 

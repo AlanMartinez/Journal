@@ -1,7 +1,7 @@
 <template>
-  <div class="panel p-6 h-full flex flex-col min-h-[600px]">
+  <div class="panel p-4 flex flex-col">
     <!-- Month Navigation -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-3">
       <button 
         @click="previousMonth"
         class="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -12,7 +12,7 @@
         </svg>
       </button>
       
-      <h2 class="text-lg font-semibold">{{ currentMonthName }} {{ currentYear }}</h2>
+      <h2 class="text-base font-semibold">{{ currentMonthName }} {{ currentYear }}</h2>
       
       <button 
         @click="nextMonth"
@@ -28,12 +28,12 @@
     </div>
 
     <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 gap-2 flex-grow">
+    <div class="grid grid-cols-7 gap-1.5">
       <!-- Day headers -->
       <div 
         v-for="day in ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']" 
         :key="day"
-        class="text-center text-sm font-medium text-white/70 py-2"
+        class="text-center text-xs font-medium text-white/70 py-1"
       >
         {{ day }}
       </div>
@@ -51,7 +51,7 @@
         :key="day"
         @click="selectDay(day)"
         @dblclick="openDayJournal(day)"
-        class="aspect-square border border-white/5 rounded p-1 cursor-pointer hover:bg-white/5 transition-colors flex flex-col relative"
+        class="aspect-square border border-white/5 rounded p-0.5 cursor-pointer hover:bg-white/5 transition-colors flex flex-col relative text-xs"
         :class="{
           'bg-primary/20': isToday(day),
           'selected-day-glow': selectedDay === day,
@@ -61,15 +61,15 @@
       >
         <div class="flex items-center justify-between relative w-full">
           <div v-if="hasBreakTradingPlan(day)" class="text-red-400 flex-shrink-0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 3l18 18M9 9v-.01M15 9v-.01M9 9v6m0-6l6 6m0-6v6m0-6l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <div class="text-right text-sm flex-1">{{ day }}</div>
+          <div class="text-right text-xs flex-1">{{ day }}</div>
         </div>
         <div 
           v-if="getDayResult(day) !== 0" 
-          class="text-xs mt-auto text-center font-medium py-1 px-1 rounded"
+          class="text-[10px] mt-auto text-center font-medium py-0.5 px-0.5 rounded"
           :class="{
             'bg-green-500/20 text-green-400': getDayResult(day) > 0,
             'bg-red-500/20 text-red-400': getDayResult(day) < 0

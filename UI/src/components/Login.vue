@@ -118,6 +118,18 @@
           <div class="text-center text-sm text-white/40 pt-4">
             <p>Al continuar, aceptas nuestros términos de servicio</p>
           </div>
+
+          <!-- Botón Demo - Discreto -->
+          <div class="text-center pt-2">
+            <button
+              @click="handleDemoLogin"
+              :disabled="loading"
+              class="text-white/40 hover:text-white/60 text-xs underline transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+            >
+              Modo demo
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -169,6 +181,22 @@ async function handleLogin() {
   } catch (err) {
     console.error('Error en login:', err)
     error.value = getErrorMessage(err)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleDemoLogin() {
+  try {
+    loading.value = true
+    error.value = ''
+    authStore.demoLogin()
+    
+    // Redirigir al dashboard
+    router.push('/dashboard')
+  } catch (err) {
+    console.error('Error en demo login:', err)
+    error.value = 'Error al iniciar modo demo'
   } finally {
     loading.value = false
   }

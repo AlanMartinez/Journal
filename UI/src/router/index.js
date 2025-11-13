@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../components/Login.vue'
 import App from '../App.vue'
+import Statistics from '../components/Statistics.vue'
+import MainLayout from '../layouts/MainLayout.vue'
 
 const routes = [
   {
@@ -9,14 +11,29 @@ const routes = [
     component: Login
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: App,
-    meta: { requiresAuth: true }
+    path: '/',
+    component: MainLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'Dashboard',
+        component: App
+      },
+      {
+        path: 'statistics',
+        name: 'Statistics',
+        component: Statistics
+      },
+      {
+        path: '',
+        redirect: '/dashboard'
+      }
+    ]
   },
   {
-    path: '/',
-    redirect: '/dashboard'
+    path: '/dashboard',
+    redirect: '/'
   }
 ]
 
@@ -34,7 +51,7 @@ router.beforeEach((to, from, next) => {
     next('/login')
   } else if (to.path === '/login' && token) {
     // Si ya está autenticado y va a login, redirigir a dashboard
-    next('/dashboard')
+    next('/')
   } else {
     next()
   }

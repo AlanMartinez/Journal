@@ -73,8 +73,13 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       loading.value = true
       
-      // Cerrar sesión en Firebase
-      await signOut(auth)
+      // Verificar si es modo demo
+      const isDemoMode = localStorage.getItem('demo_mode') === 'true'
+      
+      // Cerrar sesión en Firebase solo si no es modo demo
+      if (!isDemoMode) {
+        await signOut(auth)
+      }
       
       // Limpiar estado local
       token.value = null
@@ -83,9 +88,44 @@ export const useAuthStore = defineStore('auth', () => {
       // Limpiar localStorage
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
+      localStorage.removeItem('demo_mode')
     } catch (err) {
       console.error('Error en logout:', err)
       error.value = err.message || 'Error al cerrar sesión'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Modo demo: login sin Firebase usando datos mock
+  function demoLogin() {
+    try {
+      loading.value = true
+      error.value = null
+
+      // Crear token y usuario demo
+      const demoToken = 'demo_token_' + Date.now()
+      const demoUser = {
+        id: 'demo_user',
+        name: 'Usuario Demo',
+        email: 'demo@tradejournal.com',
+        picture: null
+      }
+
+      // Guardar en estado
+      token.value = demoToken
+      user.value = demoUser
+
+      // Persistir en localStorage
+      localStorage.setItem('auth_token', demoToken)
+      localStorage.setItem('auth_user', JSON.stringify(demoUser))
+      localStorage.setItem('demo_mode', 'true')
+
+      return { success: true, user: demoUser }
+    } catch (err) {
+      console.error('Error en demo login:', err)
+      error.value = 'Error al iniciar modo demo'
       throw err
     } finally {
       loading.value = false
@@ -119,6 +159,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     logout,
+    demoLogin,
     clearError,
     loadFromStorage
   }
