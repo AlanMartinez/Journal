@@ -152,9 +152,9 @@ class FirebaseService(DatabaseService):
             # Preparar datos para Firestore
             trade_data = self._prepare_data_for_firestore(data)
 
-            # Crear documento
-            doc_ref = self.db.collection(self.collection_name).document()
-            doc_ref.set(trade_data)
+            # Crear documento usando add() en lugar de document().set()
+            # Esto garantiza que siempre se crea un nuevo documento sin sobrescribir
+            _, doc_ref = self.db.collection(self.collection_name).add(trade_data)
 
             # Retornar con ID
             trade_data['id'] = doc_ref.id
