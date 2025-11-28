@@ -8,15 +8,28 @@ API_DESCRIPTION = "API para gestión de trades de trading"
 API_VERSION = "1.0.0"
 
 # Configuración CORS
-ALLOWED_ORIGINS = [
+# Base origins para desarrollo
+_DEFAULT_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://localhost:3000",
     "http://localhost:8080",
-    "https://journal-23783252-2d978.web.app",
 ]
+
+# Permitir agregar origins adicionales desde variable de entorno (ej: producción)
+# ALLOWED_ORIGINS="https://domain1.com,https://domain2.com"
+_env_origins = os.getenv("ALLOWED_ORIGINS", "")
+if _env_origins:
+    additional_origins = [origin.strip() for origin in _env_origins.split(",") if origin.strip()]
+    ALLOWED_ORIGINS = _DEFAULT_ORIGINS + additional_origins
+else:
+    # Si no hay env var, usar los defaults + el dominio de producción conocido
+    ALLOWED_ORIGINS = _DEFAULT_ORIGINS + [
+        "https://journal-23783252-2d978.web.app",
+        "https://journal-23783252-2d978.firebaseapp.com",
+    ]
 
 # Configuración del servidor
 HOST = os.getenv("HOST", "0.0.0.0")

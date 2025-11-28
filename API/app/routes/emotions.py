@@ -11,6 +11,7 @@ router = APIRouter(
     responses={404: {"description": "Emotion not found"}}
 )
 
+@router.get("", response_model=List[Emotion])
 @router.get("/", response_model=List[Emotion])
 async def get_emotions(user: dict = Depends(get_current_user)):
     """Obtener lista de todas las emotions"""
@@ -19,6 +20,7 @@ async def get_emotions(user: dict = Depends(get_current_user)):
     emotions_data = emotion_service.get_all(user_id=user_id)
     return [Emotion(**emotion_data) for emotion_data in emotions_data]
 
+@router.post("", response_model=Emotion)
 @router.post("/", response_model=Emotion)
 async def create_emotion(emotion: EmotionCreate, user: dict = Depends(get_current_user)):
     """Crear una nueva emotion"""

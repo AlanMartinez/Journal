@@ -25,7 +25,19 @@ from app.services.emotion_service import EmotionService
 from app.services.confirmation_service import ConfirmationService
 
 # Importar todas las rutas
-from app.routes import day_journal, trades, emotions, confirmations, export
+from app.routes import day_journal, trades, emotions, confirmations, export, auth
+from app.auth import get_current_user
+
+# Mock user para tests
+def get_mock_user():
+    """Retorna un usuario mock para testing sin requerir autenticación real"""
+    return {
+        "uid": "test_user_123",
+        "email": "test@example.com",
+        "name": "Test User",
+        "demo_mode": True,
+        "firebase_claims": {}
+    }
 
 @pytest.fixture
 def mock_database_service():
@@ -60,14 +72,18 @@ def confirmation_service_mock():
 def app():
     """Fixture para crear una instancia de FastAPI para testing"""
     app = FastAPI(title="Test API")
-    
+
+    # Override de la dependencia de autenticación para tests
+    app.dependency_overrides[get_current_user] = get_mock_user
+
     # Incluir todas las rutas
+    app.include_router(auth.router)
     app.include_router(day_journal.router)
     app.include_router(trades.router)
     app.include_router(emotions.router)
     app.include_router(confirmations.router)
     app.include_router(export.router)
-    
+
     return app
 
 @pytest.fixture

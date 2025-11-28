@@ -12,6 +12,7 @@ router = APIRouter(
     responses={404: {"description": "Day journal not found"}}
 )
 
+@router.get("", response_model=List[DayJournal])
 @router.get("/", response_model=List[DayJournal])
 async def get_day_journals(skip: int = 0, limit: int = 100, user: dict = Depends(get_current_user)):
     """Obtener lista de todos los day_journals"""
@@ -32,11 +33,6 @@ async def get_day_journals(skip: int = 0, limit: int = 100, user: dict = Depends
         day_journals.append(DayJournal(**day_journal_data))
 
     return day_journals
-
-# Alias sin barra final para soportar /day-journal además de /day-journal/
-@router.get("", response_model=List[DayJournal])
-async def get_day_journals_no_slash(skip: int = 0, limit: int = 100, user: dict = Depends(get_current_user)):
-    return await get_day_journals(skip=skip, limit=limit, user=user)
 
 @router.get("/range", response_model=List[DayJournal])
 async def get_day_journals_by_date_range(start_date: date, end_date: date, user: dict = Depends(get_current_user)):
@@ -88,6 +84,7 @@ async def get_day_journal(day_journal_id: str, user: dict = Depends(get_current_
 
     return DayJournal(**day_journal_data)
 
+@router.post("", response_model=DayJournal)
 @router.post("/", response_model=DayJournal)
 async def create_day_journal(day_journal: DayJournalCreate, user: dict = Depends(get_current_user)):
     """Crear un nuevo day_journal"""

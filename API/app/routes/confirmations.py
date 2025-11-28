@@ -11,6 +11,7 @@ router = APIRouter(
     responses={404: {"description": "Confirmation not found"}}
 )
 
+@router.get("", response_model=List[Confirmation])
 @router.get("/", response_model=List[Confirmation])
 async def get_confirmations(user: dict = Depends(get_current_user)):
     """Obtener lista de todas las confirmations"""
@@ -19,6 +20,7 @@ async def get_confirmations(user: dict = Depends(get_current_user)):
     confirmations_data = confirmation_service.get_all(user_id=user_id)
     return [Confirmation(**confirmation_data) for confirmation_data in confirmations_data]
 
+@router.post("", response_model=Confirmation)
 @router.post("/", response_model=Confirmation)
 async def create_confirmation(confirmation: ConfirmationCreate, user: dict = Depends(get_current_user)):
     """Crear una nueva confirmation"""

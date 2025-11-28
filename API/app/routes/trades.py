@@ -13,6 +13,7 @@ router = APIRouter(
     responses={404: {"description": "Trade not found"}}
 )
 
+@router.get("", response_model=List[Trade])
 @router.get("/", response_model=List[Trade])
 async def get_trades(skip: int = 0, limit: int = 100, user: dict = Depends(get_current_user)):
     """Obtener lista de todos los trades"""
@@ -60,6 +61,7 @@ async def get_trade(trade_id: str, user: dict = Depends(get_current_user)):
 
     return Trade(**trade_data)
 
+@router.post("", response_model=Trade)
 @router.post("/", response_model=Trade)
 async def create_trade(trade: TradeCreate, user: dict = Depends(get_current_user)):
     """Crear un nuevo trade"""
