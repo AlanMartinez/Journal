@@ -66,8 +66,21 @@ class TradeService:
             print(f"Error en get_by_id: {e}")
             return None
 
+    async def create_async(self, trade_data: Dict, user_id: Optional[str] = None) -> Dict:
+        """Crear un nuevo trade (versión async nativa)"""
+        try:
+            # Agregar user_id al trade_data si se proporciona
+            if user_id:
+                trade_data['user_id'] = user_id
+            return await self.db.create(trade_data)
+        except Exception as e:
+            print(f"Error en create_async: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+
     def create(self, trade_data: Dict, user_id: Optional[str] = None) -> Dict:
-        """Crear un nuevo trade"""
+        """Crear un nuevo trade (versión síncrona - deprecada, usar create_async)"""
         try:
             # Agregar user_id al trade_data si se proporciona
             if user_id:

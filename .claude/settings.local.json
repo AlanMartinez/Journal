@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python run_tests.py:*)",
+      "Bash(pip show:*)",
+      "Bash(.venvScriptsactivate)",
+      "Bash(.venv/Scripts/python.exe --version)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(.venvScriptspython.exe --version)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

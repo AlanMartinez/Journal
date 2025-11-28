@@ -1,6 +1,8 @@
 import os
-from fastapi import FastAPI, Depends
+import traceback
+from fastapi import FastAPI, Depends, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import uvicorn
 from dotenv import load_dotenv
 
@@ -42,6 +44,28 @@ app = FastAPI(
     description=API_DESCRIPTION,
     version=API_VERSION
 )
+
+# Middleware para manejo global de errores
+@app.middleware("http")
+async def error_handling_middleware(request: Request, call_next):
+    """Middleware para capturar y loggear errores 500"""
+    try:
+        return await call_next(request)
+    except Exception as e:
+        # Loggear el error completo con traceback
+        error_traceback = traceback.format_exc()
+        print(f"❌ ERROR 500 en {request.method} {request.url.path}")
+        print(f"   Error: {str(e)}")
+        print(f"   Traceback:\n{error_traceback}")
+
+        # Retornar respuesta de error al cliente
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": "Internal server error",
+                "error": str(e) if ENV == 'development' else "An error occurred processing your request"
+            }
+        )
 
 # Configuración CORS
 app.add_middleware(

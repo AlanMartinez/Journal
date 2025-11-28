@@ -71,7 +71,7 @@ async def create_trade(trade: TradeCreate, user: dict = Depends(get_current_user
     # En modo demo, no asignar user_id (los datos mock no tienen user_id)
     # En modo usuario real, asignar el user_id del usuario
     user_id = None if user.get('demo_mode') else user['uid']
-    created_trade_data = trade_service.create(trade_data, user_id=user_id)
+    created_trade_data = await trade_service.create_async(trade_data, user_id=user_id)
 
     # Convertir fecha de vuelta para respuesta
     if isinstance(created_trade_data.get('date'), str):
